@@ -1,46 +1,90 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import random as rd
 import networkx as nx
 import math as mt
 from scipy import stats
 import pickle
 import gs_data as gsd
+import operator
 
-# Find the average cooperation coefficient for each node in the graph-data
-# structure inside ['networks'][i] 
-def mean_node_coop_rate(net_data) :
-  s = len(net_data['sims'])
-  n = len(net_data['network'])
-  rates = [[None for x in range(n)] for y in range(s)]
-  for i in range(s) :
-    rates[i] = node_coop_rate()
-  mean_rates = [None for z in range(n)]
-  for k in range(n) :
-    total = 0
-    for l in range(s) :
-      total += rates[l][k]
+def coop_ratio_by_degree(simulation, b)
+  n_steps = len(simulation['coop_degree'])
+  b_index = int(round((b-1)*n_steps))
+  df = simulation['coop_degree'][b_index]
+  degrees = df.degree.unique().sort_values()
+  totals = df.degree.value_counts().sort_index()
+  coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
+  ratio = coops.divide(totals)
+  plt.plot()
 
+# pyplot the degree distribution over all generated networks
+def degree_distribution_plot(simulation) :
+  hist = simulation['coop_degree'][0].degree.value_counts().sort_index()
+  plt.plot(hist)
+  plt.xlabel('degree')
+  plt.ylabel('frequency')
+  plt.title('degree distribution of '+simulation['graph_name'])
+  #plt.show()
+
+# uses data for each node of each network to construct a dataframe 
+# which compares degree to cooperation rate
+def cooperation_to_degree(simulation) :
+  n_steps = len(simulation['networks'][0]['average_cooperation_per_node'])
+  n_networks = len(simulation['networks'])
+  n_nodes = len(simulation['networks'][0]['network'])
+  simulation['coop_degree'] = [None for x in range(n_steps)]
+  for b in range(n_steps) :
+    dict = {}
+    degree = dict['degree'] = [None for x in range(n_nodes*n_networks)]
+    coop_rate = dict['coop_rate'] = [None for x in range(n_nodes*n_networks)]
+    for n in range(n_networks) :
+      network = simulation['networks'][n]
+      for v in range(n_nodes) :
+        index = n*n_nodes + v
+        degree[index] = network['network'].degree(v)
+        coop_rate[index] = network['average_cooperation_per_node'][b][v]
+    simulation['coop_degree'][b] = pd.DataFrame(dict)
+    
+# adds the per network data averages to the overall data structure, giving 
+# per node data and overall data. per node will be useful for mapping against
+# degree, whilst overall will be useful for overall graph behaviour.
+def per_network_cooperation_rate(simulation) :
+  networks = simulation['networks']
+  n_networks = len(networks)
+  for n in range(n_networks) :
+    network = networks[n]
+    network['average_cooperation_per_node'] = b_sim_coop_average(network['sims'])
+    network['overall_average_cooperation'] = b_sim_mean_coop_average(network['average_cooperation_per_node'])
+
+# takes output of "b_sim_coop_average" and averages over node to give
+# b -> average_coop
+def b_sim_mean_coop_average(averages) :
+  return map(lambda z: sum(z)/len(z), averages)
+
+# ADD THIS TO DATA STRUCTURE
 # pass ['sims'] data to get average coop rate per node over all simulations
 # as a relation on b (b -> sim_avg per node)
 def b_sim_coop_average(sims) :
-  n_steps = len(sims[0][0])
-  averages = [[0 for x in range(n_steps)] for y in range(2)]
-  for y in range(len(sims)) :
-    b_data_avg = b_data_coop_average(sims[y])
+  n_steps = len(sims[0])
+  n_sims = len(sims)
+  averages = b_data_coop_average(sims[0])
+  for s in range(1, n_sims) :
+    avg = b_data_coop_average(sims[s])
     for b in range(n_steps) :
-      averages[1][b] = map(operator.add, averages[1][b], b_data_avg[1][b])
-  for b2 in range(n_steps) :
-    averages[1][b2] = map(lambda z: z/float(len(sims)), averages[1][b2])
-    averages[0][b2] = 1 + b2/float(len(sims[0][0]))
-
+      averages[b] = map(operator.add, averages[b], avg[b])
+  for b in range(n_steps) :
+    averages[b] = map(lambda z: z/float(n_sims), averages[b])
+  return averages
+  
 # pass a single simulation data ("model['networks'][N]['sims'][s]") structure, get b -> average per node
 def b_data_coop_average(b_data) :
-  averages = [[None for x in range(len(b_data[0]))] for y in range(2)]
-  for b in range(len(b_data[0])) :
-    averages[0][b] = b_data[0][b]
-    averages[1][b] = coop_rate_per_node(b_data[1][b])
+  n_steps = len(b_data)
+  averages = [None for x in range(n_steps)]
+  for b in range(n_steps) :
+    averages[b] = coop_rate_per_node(b_data[b])
   return averages
 
 # pass data for a single b iteration of a simulation. return cooperation rate
@@ -48,11 +92,8 @@ def b_data_coop_average(b_data) :
 def coop_rate_per_node(data) :
   network_order = len(data[0])
   samples = len(data)
-  averages = [None for x in range(network_order)]
-  for j in range(network_order) :
-    sum = 0
-    for i in range(samples)
-      sum += data[i][j]
-    mean = sum/float(samples)
-    averages[j] = mean
+  averages = [0 for x in range(network_order)]
+  for i in range(samples) :
+    averages = map(operator.add, averages, map(int, data[i]))
+  averages = map(lambda z: z/float(samples), averages)
   return averages

@@ -53,7 +53,7 @@ erdos = full_sim_for_family("erdos_renyi", nx.watts_strogatz_graph, [100, 4, 1],
 def save_sim_data(simulation) :
   global data_directory
   s = simulation
-  filename = s['graph_name'] + "_params=" + '-'.join(s['params']) + "_nets=" + s['n_networks'] + "_sims=" + s['sims_per_network'] + ".gsdata"
+  filename = s['graph_name'] + "_params=" + '-'.join(map(str, s['params'])) + "_nets=" + str(s['n_networks']) + "_sims=" + str(s['sims_per_network']) + ".gsdata"
   f = open(data_directory+filename, 'w')
   pickle.dump(simulation, f)
   f.close()

@@ -31,12 +31,10 @@ global b, N
 
 # get data for specified network over full range of b values
 def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20) :
-  global b
-  data = [[None for x in range(n_steps)] for y in range(2)]
+  data = [None for x in range(n_steps)]
   for i in range(n_steps) :
     init(network)
-    data[1][i] = sim(network, 1+i/float(n_steps))
-    data[0][i] = b
+    data[i] = sim(network, 1+i/float(n_steps))
   return data
 
 # initialise payoff and strategy fields
