@@ -29,6 +29,16 @@ import pickle
 
 global b, N
 
+# get data for specified network over full range of b values
+def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20) :
+  global b
+  data = [[None for x in range(n_steps)] for y in range(2)]
+  for i in range(n_steps) :
+    init(network)
+    data[1][i] = sim(network, 1+i/float(n_steps))
+    data[0][i] = b
+  return data
+
 # initialise payoff and strategy fields
 def init(network) :
   global N 
@@ -42,7 +52,6 @@ def init(network) :
     if not network.node[s]['strategy'] :
       network.node[s]['strategy'] = True
       cnt = cnt + 1
-
 
 # run simulation and return data from final 1e3 iterations
 def sim(network, B, n_mix = int(1e4), n_data = int(1e3)) :
@@ -159,6 +168,9 @@ def average_degree(network) :
   degrees = network.degree()
   return sum(degrees.values())/float(len(degrees))
 
+# analysis
+
+# cooperation ratio for network
 def cooperation_ratio(network) :
   data = [False for x in range(len(network))]
   for i in network.nodes() :
@@ -168,109 +180,21 @@ def cooperation_ratio(network) :
   ratio = coops/float(len(data))
   return ratio
 
-
-  
-# test
-#regular = nx.watts_strogatz_graph(1000, 4, 0)
-#watts = nx.watts_strogatz_graph(1000, 4, 0.2)
-#erdos = nx.watts_strogatz_graph(1000, 4, 1)
-
-#init(regular)
-#init(watts)
-#init(erdos)
-
-#if not cooperation_ratio(regular) == 0.5 :
-#  print('Test failed: incorrect cooperation ratio from init')
-#if not cooperation_ratio(watts) == 0.5 :
-#  print('Test failed: incorrect cooperation ratio from init')
-#if not cooperation_ratio(erdos) == 0.5 :
-#  print('Test failed: incorrect cooperation ratio from init')
-
-
-  
- 
-#regular = nx.watts_strogatz_graph(1000, 4, 0)
-#init(regular)
-#data = sim(regular, 1)
-#average_coop_ratio(data)
-#coop_ratio_average(data)
-
-#init(regular)
-#data2 = sim(regular, 1.8)
-#average_coop_ratio(data2)
-
-#init(regular)
-#data3 = sim(regular, 1.15)
-#average_coop_ratio(data3)
-
-
-def coop_ratio_graph(network, n_steps) :
+# graph of cooperation ratio over b
+def coop_ratio_graph(network, n_steps = 20) :
   global b
   graph = [[None for x in range(n_steps)] for y in range(2)]
   for i in range(n_steps) :
     data = None
     init(network)
     data = sim(network, 1+i/float(n_steps))
-    graph[0][i] = b
     graph[1][i] = average_coop_ratio(data)
+    graph[0][i] = b
   return graph
-  
+
+# plot above graph
 def plot_graph(graph, style) :
   plt.plot(graph[0], graph[1], style)
-  
-regular = nx.watts_strogatz_graph(1000, 4, 0)
-regular_cr_graph = coop_ratio_graph(regular, 40)
-regular_file = open('regular_n=1000_interval=40_k=4', 'w')
-pickle.dump(regular_cr_graph, regular_file)
-regular_file.close()
-
-watts = nx.watts_strogatz_graph(1000, 4, 0.2)
-watts_cr_graph = coop_ratio_graph(watts, 40)
-watts_file = open('watts_n=1000_interval=40_k=4', 'w')
-pickle.dump(watts_cr_graph, watts_file)
-watts_file.close()
-
-erdos = nx.watts_strogatz_graph(1000, 4, 1)
-erdos_cr_graph = coop_ratio_graph(erdos, 40)
-erdos_file = open('erdos_n=1000_interval=40_k=4', 'w')
-pickle.dump(erdos_cr_graph, erdos_file)
-erdos_file.close()
-
-barabasi = nx.barabasi_albert_graph(1000, 2)
-barabasi_cr_graph = coop_ratio_graph(barabasi, 40)
-barabasi_file = open('barabasi_n=1000_interval=40_m=2', 'w')
-pickle.dump(barabasi_cr_graph, barabasi_file)
-barabasi_file.close()
+ 
 
 
-
-regular_file = open('regular_n=1000_interval=40_k=4', 'r')
-regular_cr_graph_load = pickle.load(regular_file)
-regular_file.close()
-watts_file = open('watts_n=1000_interval=40_k=4', 'r')
-watts_cr_graph_load = pickle.load(watts_file)
-watts_file.close()
-erdos_file = open('erdos_n=1000_interval=40_k=4', 'r')
-erdos_cr_graph_load = pickle.load(erdos_file)
-erdos_file.close()
-barabasi_file = open('barabasi_n=1000_interval=40_m=2', 'r')
-barabasi_cr_graph_load = pickle.load(barabasi_file)
-barabasi_file.close()
-
-plt.figure(1)
-plot_graph(regular_cr_graph, 'r-')
-plot_graph(watts_cr_graph, 'g-')
-plot_graph(erdos_cr_graph, 'b-')
-plot_graph(barabasi_cr_graph, 'm-')
-plt.xlabel('fraction of cooperators')
-plt.ylabel('b')
-plt.title('fraction of cooperators as a function of b for various random graphs')
-plt.legend(['regular', 'watts-strogatz', 'erdos-renyi', 'barabasi-albert'], loc=7)
-plt.show()
-
-plt.figure(2)
-plot_graph(regular_cr_graph_load, 'r-')
-plot_graph(watts_cr_graph_load, 'g-')
-plot_graph(erdos_cr_graph_load, 'b-')
-plot_graph(barabasi_cr_graph_load, 'm-')
-plt.show()
