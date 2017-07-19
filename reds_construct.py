@@ -11,6 +11,7 @@ import operator
 import os
 import time
 import community
+import statistics as stat
 
 rd.seed(4)
 
@@ -149,6 +150,12 @@ def social_properties(G) :
   G.graph['transitivity'] = nx.transitivity(G)
   G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
   G.graph['char_path_length'] = nx.average_shortest_path_length(G)
+  degrees = G.degree().values()
+  G.graph['max_degree'] = max(degrees)
+  G.graph['mean_degree'] = sum(degrees/float(len(degrees)))
+  G.graph['mode_degree'] = max(set(degrees), key = degrees.count)
+  G.graph['median_degree'] = stat.median(degrees)
+  
   
 # drawing the graph
 def draw_graph(G) :
