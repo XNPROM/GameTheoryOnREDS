@@ -25,6 +25,7 @@ import random as rd
 import networkx as nx
 import math as mt
 from scipy import stats
+from bitarray import bitarray
 import pickle
 
 global b, N
@@ -58,7 +59,7 @@ def init(network) :
 def sim(network, B, n_mix = int(1e4), n_data = int(1e3)) :
   global b
   b = B
-  data = [[False for x in range(len(network))] for y in range(n_data)]
+  data = [bitarray([False for x in range(len(network))]) for y in range(n_data)]
   for i in range(n_mix) :
     run_network_game(network)
     strategy_update(network)  

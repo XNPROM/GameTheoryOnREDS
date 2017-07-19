@@ -94,5 +94,5 @@ def load_sim_data(filename) :
   f.close()
   return sim
 
-erdos = gsd.full_sim_for_family("erdos_renyi", nx.watts_strogatz_graph, [1000, 4, 1], 2, 2, 10000, 1000)
+#erdos = gsd.full_sim_for_family("erdos_renyi", nx.watts_strogatz_graph, [1000, 4, 1], 1, 1, 10000, 1000)
 

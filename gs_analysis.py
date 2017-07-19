@@ -18,10 +18,10 @@ def coop_ratio_by_degree(simulation, b) :
   totals = df.degree.value_counts().sort_index()
   coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
   ratio = coops.divide(totals)
-  print(totals)
-  print(coops)
-  print(ratio)
   plt.plot(degrees, ratio)
+  plt.title('coop ratio by degree for '+simulation['graph_name'] + ' for b = ' + str(b))
+  plt.xlabel('degree')
+  plt.ylabel('ratio of cooperators')
 
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
@@ -32,6 +32,21 @@ def degree_distribution_plot(simulation) :
   plt.title('degree distribution of '+simulation['graph_name'])
   #plt.show()
 
+# plot average cooperation ratio by b-values
+def cooperation_by_b_plot(simulation) :
+  n_steps = len(simulation['networks'][0]['average_cooperation_per_node'])
+  n_networks = len(simulation['networks'])
+  average_rate = [0. for x in range(n_steps)]
+  for g in range(n_networks) :
+    average_rate = map(lambda x,y : x+y, average_rate, simulation['networks'][g]['overall_average_cooperation'])
+  average_rate = map(lambda x : x/float(n_networks), average_rate)
+  b = [1 + i/float(n_steps) for i in range(n_steps)]
+  plt.plot(b, average_rate, 'b-')
+  plt.xlim(0.975, 2.025)
+  plt.title('cooperation rate over b for '+simulation['graph_name'])
+  plt.xlabel('b')
+  plt.ylabel('cooperation ratio')
+  
 # uses data for each node of each network to construct a dataframe 
 # which compares degree to cooperation rate
 def cooperation_to_degree(simulation) :

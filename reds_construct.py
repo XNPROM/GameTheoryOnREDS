@@ -143,6 +143,12 @@ def sec_to_string(seconds) :
   secs = secs - min * 60
   return str(hour) + ':' + str(min) + ':' + str(secs)
 
+# add graph analysis
+def social_properties(G) :
+  G.graph['clustering'] = nx.average_clustering(G)
+  G.graph['transitivity'] = nx.transitivity(G)
+  G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
+  G.graph['char_path_length'] = nx.average_shortest_path_length(G)
   
 # drawing the graph
 def draw_graph(G) :
@@ -169,7 +175,23 @@ def draw_communities(G) :
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
   plt.show()
-  
+ 
+# draw communities non-spatially
+def draw_communities_spring(G) :
+  coord = nx.spring_layout(G)
+  partition = community.best_partition(G)
+  size = float(len(set(partition.values())))
+  count = 0
+  for com in set(partition.values()) :
+    count = count + 1
+    list_nodes = [nodes for nodes in partition.keys() if partition[nodes] == com]
+    nx.draw_networkx_nodes(G, pos = coord, nodelist = list_nodes, node_size = 30, node_color = [count/float(size) for x in list_nodes], cmap = plt.get_cmap('nipy_spectral'), vmin = 0, vmax = 1)
+  nx.draw_networkx_edges(G, coord, alpha = 0.5)
+  plt.xlim(-0.02, 1.02)
+  plt.ylim(-0.02, 1.02)
+  plt.show()
+ 
+ 
 # save graph
 def save_graph(G) :
   global data_directory
