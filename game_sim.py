@@ -29,10 +29,13 @@ import pickle
 
 global b, N
 
+rd.seed(3)
+
 # get data for specified network over full range of b values
 def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20) :
   data = [None for x in range(n_steps)]
   for i in range(n_steps) :
+    print(str(i/float(n_steps)*100)+'%')
     init(network)
     data[i] = sim(network, 1+i/float(n_steps))
   return data

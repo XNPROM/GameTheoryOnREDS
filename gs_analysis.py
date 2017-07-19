@@ -10,15 +10,18 @@ import pickle
 import gs_data as gsd
 import operator
 
-def coop_ratio_by_degree(simulation, b)
+def coop_ratio_by_degree(simulation, b) :
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
   df = simulation['coop_degree'][b_index]
-  degrees = df.degree.unique().sort_values()
+  degrees = df.degree.value_counts().sort_index().index
   totals = df.degree.value_counts().sort_index()
   coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
   ratio = coops.divide(totals)
-  plt.plot()
+  print(totals)
+  print(coops)
+  print(ratio)
+  plt.plot(degrees, ratio)
 
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
