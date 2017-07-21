@@ -15,6 +15,13 @@ def full_analysis(simulation) :
   per_network_cooperation_rate(simulation)
   cooperation_to_degree(simulation)
 
+def coop_ratio_by_degree_seq(simulation) :
+  n_steps = len(simulation['coop_degree'])
+  for c in range(n_steps/2) :
+    plt.figure(c)
+    coop_ratio_by_degree(simulation, 1+(c*2)/float(n_steps))
+  plt.show()
+  
 def coop_ratio_by_degree(simulation, b) :
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
@@ -23,10 +30,13 @@ def coop_ratio_by_degree(simulation, b) :
   totals = df.degree.value_counts().sort_index()
   coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
   ratio = coops.divide(totals)
-  plt.plot(degrees, ratio)
+  #plt.plot(degrees, ratio)
+  p2 = plt.bar(degrees, map(lambda x : 1-x, ratio), bottom = ratio, color = '#adadad')
+  p1 = plt.bar(degrees, ratio, color = '#494949')
   plt.title('coop ratio by degree for '+simulation['graph_name'] + ' for b = ' + str(b))
   plt.xlabel('degree')
   plt.ylabel('ratio of cooperators')
+  plt.legend((p1[0], p2[0]), ('cooperators', 'defectors'), loc = 7)
 
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
