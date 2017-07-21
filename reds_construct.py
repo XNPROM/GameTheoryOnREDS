@@ -152,7 +152,7 @@ def social_properties(G) :
   G.graph['char_path_length'] = nx.average_shortest_path_length(G)
   degrees = G.degree().values()
   G.graph['max_degree'] = max(degrees)
-  G.graph['mean_degree'] = sum(degrees/float(len(degrees)))
+  G.graph['mean_degree'] = sum(degrees)/float(len(degrees))
   G.graph['mode_degree'] = max(set(degrees), key = degrees.count)
   G.graph['median_degree'] = stat.median(degrees)
   

@@ -10,6 +10,11 @@ import pickle
 import gs_data as gsd
 import operator
 
+# pull the summary data into the simulation structure
+def full_analysis(simulation) :
+  per_network_cooperation_rate(simulation)
+  cooperation_to_degree(simulation)
+
 def coop_ratio_by_degree(simulation, b) :
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
