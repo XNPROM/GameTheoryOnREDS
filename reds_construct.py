@@ -24,7 +24,7 @@ def multiple_reds(n, r, e, s, n_graphs) :
   networks = [None for i in range(n_graphs)]
   for i in range(n_graphs) :
     networks[i] = reds_graph(n, r, e, s)
-  filename = 'REDS_n='+n+'_r='+r+'_e='+e+'_s='+s+'_n_graphs='+n_graphs+.redsgraph
+  filename = 'REDS_n='+n+'_r='+r+'_e='+e+'_s='+s+'_n_graphs='+n_graphs+'.redsgraph'
   f = open(data_directory+'REDS\\'+filename, 'w')
   pickle.dump(networks, f)
   f.close()
