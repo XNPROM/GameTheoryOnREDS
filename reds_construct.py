@@ -39,11 +39,11 @@ def reds_range() :
       multiple_reds(1000, 0.1, e, s, 5)
 
 # return a small-world REDS graphs
-def small_world_reds_graph(n, r, e, s) :
-  G = reds_graph(n, r, e, s)
-  G.graph['small-world'] = True
-  for i in range(G.size()-1) :
-    for 
+#def small_world_reds_graph(n, r, e, s) :
+ # G = reds_graph(n, r, e, s)
+  #G.graph['small-world'] = True
+  #for i in range(G.size()-1) :
+   # for 
   
       
 # return a networkx REDS graph with specified order, reach, energy and synergy
