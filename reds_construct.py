@@ -19,7 +19,23 @@ rd.seed(4)
 global data_directory
 data_directory = os.getcwd() + "\\data\\"
 
+# construct and save several REDS graphs
+def multiple_reds(n, r, e, s, n_graphs) :
+  networks = [None for i in range(n_graphs)]
+  for i in range(n_graphs) :
+    networks[i] = reds_graph(n, r, e, s)
+  filename = 'REDS_n='+n+'_r='+r+'_e='+e+'_s='+s+'_n_graphs='+n_graphs+.redsgraph
+  f = open(data_directory+'REDS\\'+filename, 'w')
+  pickle.dump(networks, f)
+  f.close()
 
+def reds_range() :
+  E = [0.03, 0.09, 0.18, 0.27]
+  S = [0, 0.25, 0.5, 0.75, 1]
+  for e in E :
+    for s in S :
+      multiple_reds(1000, 0.1, e, s, 5)
+  
 # return a networkx REDS graph with specified order, reach, energy and synergy
 def reds_graph(n, r, e, s) :
   start = int(round(time.time()))
@@ -215,5 +231,5 @@ def load_graph(filename) :
   f.close()
   return G
   
-
+  
 #REDS = reds_graph(3000, 0.05, 0.09, 1)
