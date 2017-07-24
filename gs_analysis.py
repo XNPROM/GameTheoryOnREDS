@@ -17,9 +17,12 @@ def full_analysis(simulation) :
 
 def coop_ratio_by_degree_seq(simulation) :
   n_steps = len(simulation['coop_degree'])
+  plt.figure(1)
+  plt.suptitle('Co-operation ratios by degree for '+simulation['graph_name'])
   for c in range(n_steps/2) :
-    plt.figure(c)
+    ax = plt.subplot(2, 5, c+1)
     coop_ratio_by_degree(simulation, 1+(c*2)/float(n_steps))
+  ax.legend(bbox_to_anchor=(1.05, 0), loc='lower left', borderaxespad=0.)
   plt.show()
   
 def coop_ratio_by_degree(simulation, b) :
@@ -29,14 +32,15 @@ def coop_ratio_by_degree(simulation, b) :
   degrees = df.degree.value_counts().sort_index().index
   totals = df.degree.value_counts().sort_index()
   coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
-  ratio = coops.divide(totals)
-  #plt.plot(degrees, ratio)
-  p2 = plt.bar(degrees, map(lambda x : 1-x, ratio), bottom = ratio, color = '#adadad')
-  p1 = plt.bar(degrees, ratio, color = '#494949')
-  plt.title('coop ratio by degree for '+simulation['graph_name'] + ' for b = ' + str(b))
+  defects = df.loc[df['coop_rate'] <= 0.5].degree.value_counts().sort_index()
+  c_ratio = coops.divide(totals)
+  d_ratio = defects.divide(totals)
+  p2 = plt.bar(degrees, d_ratio, bottom = c_ratio, color = '#adadad', label = 'defectors')
+  p1 = plt.bar(degrees, c_ratio, color = '#494949', label = 'cooperators')
+  plt.title('b = ' + str(b))
   plt.xlabel('degree')
   plt.ylabel('ratio of cooperators')
-  plt.legend((p1[0], p2[0]), ('cooperators', 'defectors'), loc = 7)
+  #plt.legend((p1[0], p2[0]), ('cooperators', 'defectors'), loc = 7)
 
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :

@@ -12,6 +12,7 @@ import os
 import time
 import community
 import statistics as stat
+import graph_randomiser as gr
 
 rd.seed(4)
 
@@ -29,15 +30,24 @@ def multiple_reds(n, r, e, s, n_graphs) :
   pickle.dump(networks, f)
   f.close()
 
+# save 5 reds graphs for each parameter set over a range of e and s values
 def reds_range() :
   E = [0.03, 0.09, 0.18, 0.27]
   S = [0, 0.25, 0.5, 0.75, 1]
   for e in E :
     for s in S :
       multiple_reds(1000, 0.1, e, s, 5)
+
+# return a small-world REDS graphs
+def small_world_reds_graph(n, r, e, s) :
+  G = reds_graph(n, r, e, s)
+  G.graph['small-world'] = True
+  for i in range(G.size()-1) :
+    for 
   
+      
 # return a networkx REDS graph with specified order, reach, energy and synergy
-def reds_graph(n, r, e, s) :
+def reds_graph(n, r, e, s, torus=True) :
   start = int(round(time.time()))
   G = nx.Graph()
   G.graph['reach'] = r
@@ -53,7 +63,10 @@ def reds_graph(n, r, e, s) :
     u = G.node[i]
     for j in range(i, n) :
       v = G.node[j]
-      d = distance(u, v)
+      if torus = True :
+        d = torus_distance(u, v)
+      else :
+        d = distance(u, v)
       if d < r :
         u['in_range'][str(j)] = d
         v['in_range'][str(i)] = d
