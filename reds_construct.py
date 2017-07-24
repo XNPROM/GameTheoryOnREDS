@@ -63,7 +63,7 @@ def reds_graph(n, r, e, s, torus=True) :
     u = G.node[i]
     for j in range(i, n) :
       v = G.node[j]
-      if torus = True :
+      if torus == True :
         d = torus_distance(u, v)
       else :
         d = distance(u, v)
@@ -162,7 +162,7 @@ def distance(node_1, node_2) :
 
 # distance between two nodes on a torus computational
 def torus_distance(node_1, node_2) :
-  x, y = map(lambda p, q: divmod(p-q, 0.5), node_1['pos'], node_2['pos'])
+  x, y = map(lambda p, q: min(abs(p-q), 1-abs(p-q)), node_1['pos'], node_2['pos'])
   dist = mt.sqrt(x**2 + y**2)
   return dist
   
