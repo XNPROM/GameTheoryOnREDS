@@ -244,5 +244,18 @@ def load_graph(filename) :
   f.close()
   return G
   
+# load a graph of each type from folder
+def load_graph_range(directory) :
+  graphs = [None for i in len(os.listdir(data_directory + directory))]
+  k = 0
+  for filename in os.listdir(data_directory + directory) :
+    f = open(data_directory+directory+'\\'+filename, 'r')
+    nets = pickle.load(f)
+    f.close()
+    graphs[k] = nets[0]
+    k = k+1
+  return graphs
+    
+    
   
 #REDS = reds_graph(3000, 0.05, 0.09, 1)
