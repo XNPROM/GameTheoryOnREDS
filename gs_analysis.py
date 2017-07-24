@@ -58,6 +58,7 @@ def cooperation_by_b_plot(simulation) :
   b = [1 + i/float(n_steps) for i in range(n_steps)]
   plt.plot(b, average_rate, 'b-')
   plt.xlim(0.975, 2.025)
+  plt.ylim(0, 1)
   plt.title('cooperation rate over b for '+simulation['graph_name'])
   plt.xlabel('b')
   plt.ylabel('cooperation ratio')
