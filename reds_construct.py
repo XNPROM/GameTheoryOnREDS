@@ -32,11 +32,11 @@ def multiple_reds(n, r, e, s, n_graphs) :
 
 # save 5 reds graphs for each parameter set over a range of e and s values
 def reds_range() :
-  E = [0.03, 0.09, 0.18, 0.27]
+  E = map(lambda x: 3*x, [0.03, 0.09, 0.18, 0.27])
   S = [0, 0.25, 0.5, 0.75, 1]
   for e in E :
     for s in S :
-      multiple_reds(1000, 0.1, e, s, 5)
+      multiple_reds(1000, 0.15, e, s, 5)
 
 # return a small-world REDS graphs
 #def small_world_reds_graph(n, r, e, s) :
@@ -178,7 +178,8 @@ def social_properties(G) :
   G.graph['clustering'] = nx.average_clustering(G)
   G.graph['transitivity'] = nx.transitivity(G)
   G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
-  G.graph['char_path_length'] = nx.average_shortest_path_length(G)
+  if nx.is_connected(G) : 
+    G.graph['char_path_length'] = nx.average_shortest_path_length(G)
   degrees = G.degree().values()
   G.graph['max_degree'] = max(degrees)
   G.graph['mean_degree'] = sum(degrees)/float(len(degrees))
@@ -227,6 +228,13 @@ def draw_communities_spring(G) :
   plt.ylim(-0.02, 1.02)
   plt.show()
  
+def plot_degree_distribution(G) :
+  degrees = G.degree()
+  values = sorted(set(degrees.values()))
+  hist = [degrees.values().count(x) for x in values]
+  plt.plot(values, hist, 'b-')
+  plt.xlim(0, 200)
+  plt.ylim(0, 500)
  
 # save graph
 def save_graph(G) :
@@ -246,7 +254,7 @@ def load_graph(filename) :
   
 # load a graph of each type from folder
 def load_graph_range(directory) :
-  graphs = [None for i in len(os.listdir(data_directory + directory))]
+  graphs = [None for i in range(len(os.listdir(data_directory + directory)))]
   k = 0
   for filename in os.listdir(data_directory + directory) :
     f = open(data_directory+directory+'\\'+filename, 'r')
@@ -256,6 +264,33 @@ def load_graph_range(directory) :
     k = k+1
   return graphs
     
-    
+def plot_multiple_degree_dist(graphs) :
+  sort = sorted(graphs, key=lambda g: (g.graph['energy'], g.graph['synergy']))
+  for k in range(len(graphs)) :
+    plt.subplot(4, 5, arrange(k))
+    plt.xticks([])
+    plt.yticks([])
+    if arrange(k)%5 == 1 :
+      plt.ylabel('E='+str(sort[k].graph['energy']))
+    if (arrange(k)-1)/5 == 3 :
+      plt.xlabel('S='+str(sort[k].graph['synergy']))
+    plot_degree_distribution(sort[k])
+  plt.show()
   
+def print_mult_avg_degree(graphs) :
+  sort = sorted(graphs, key=lambda g: (g.graph['energy'], g.graph['synergy']))
+  for k in range(len(graphs)) :
+    g = sort[k].graph
+    print('energy='+str(g['energy'])+'\t synergy='+str(g['synergy'])+'\t mean_degree='+str(g['mean_degree']))
+  
+def arrange(k) :
+  return ((3-(k)/5)*5 + (k)%5 +1)
+  
+  
+def double_peak_search(order, synergy, steps) :
+  graphs = [None for k in range(steps)]
+  for s in range(steps) :
+    graphs[s] = reds_graph(order, 0.15, s/float(steps), synergy)
+  return graphs
+    
 #REDS = reds_graph(3000, 0.05, 0.09, 1)
