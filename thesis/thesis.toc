@@ -1,0 +1,28 @@
+\contentsline {part}{I\hspace {1em}Research Areas}{7}
+\contentsline {chapter}{\numberline {1}Game Theory}{8}
+\contentsline {chapter}{\numberline {2}Graph Theory}{9}
+\contentsline {chapter}{\numberline {3}Random Graphs}{10}
+\contentsline {chapter}{\numberline {4}Towards an Accurate Social Network}{11}
+\contentsline {chapter}{\numberline {5}Co-operation in Systems}{12}
+\contentsline {chapter}{\numberline {6}Research Question}{13}
+\contentsline {part}{II\hspace {1em}Method and Results}{14}
+\contentsline {chapter}{\numberline {7}The Model}{15}
+\contentsline {chapter}{\numberline {8}Tools}{16}
+\contentsline {subsection}{\numberline {8.0.1}NetworkX}{16}
+\contentsline {subsection}{\numberline {8.0.2}bitarray}{16}
+\contentsline {chapter}{\numberline {9}Evolutionary Co-operation System}{17}
+\contentsline {section}{\numberline {9.1}Method}{17}
+\contentsline {subsection}{\numberline {9.1.1}Game simulation module}{17}
+\contentsline {section}{\numberline {9.2}Results}{19}
+\contentsline {chapter}{\numberline {10}Constructing the REDS Graph}{20}
+\contentsline {section}{\numberline {10.1}Method}{20}
+\contentsline {section}{\numberline {10.2}Results}{20}
+\contentsline {chapter}{\numberline {11}Cooperation on REDS}{21}
+\contentsline {section}{\numberline {11.1}Method}{21}
+\contentsline {section}{\numberline {11.2}Results and analysis}{21}
+\contentsline {chapter}{\numberline {12}Dynamic REDS System}{22}
+\contentsline {section}{\numberline {12.1}Design}{22}
+\contentsline {section}{\numberline {12.2}Method}{22}
+\contentsline {section}{\numberline {12.3}Results and analysis}{22}
+\contentsline {chapter}{\numberline {13}Discussion}{23}
+\contentsline {chapter}{\numberline {14}Conclusion}{24}

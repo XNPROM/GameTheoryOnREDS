@@ -1,0 +1,295 @@
+\documentclass[a4paper, 12pt, notitlepage]{report}
+
+\usepackage{amsfonts} % if you want blackboard bold symbols e.g. for real numbers
+\usepackage{graphicx} % if you want to include jpeg or pdf pictures
+\usepackage{nicefrac} %for nice inline fractions
+%\usepackage{bbold} %blackboard bold characters
+\usepackage{amssymb} 
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[section]{placeins}
+\usepackage[labelfont=bf]{caption}
+\usepackage{mathtools}%for matrix algignment
+\usepackage{listings}%source code
+\usepackage{courier}%font for code
+\usepackage{kbordermatrix}%for labelled matrices
+\usepackage{color}
+
+\title{Evolutionary Co-operation on REDS Social Networks} % change this
+\author{John J.E. Smith} % change this
+\date{July 25, 2017} % change this
+
+\numberwithin{equation}{subsection}
+
+\newtheorem{theorem}{Theorem}[section]
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem*{cor}{Corollary}
+\theoremstyle{theorem}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\theoremstyle{definition}
+
+%matrices
+\newcommand{\amat}{\mathbf A}
+\newcommand{\pmat}{\mathbf{P}}
+
+%other quantities
+\newcommand{\spec}{\rho(\mathbf{P})}
+\newcommand{\isop}{\mathrm h(G)}
+\newcommand{\flo}{\left\lfloor \frac{1}{2}\mathrm{diam}(G)-1\right\rfloor}
+
+%vectors
+\newcommand{\uvec}{\mathbf u}
+\newcommand{\vc}{\mathbf}
+\newcommand{\vvec}{\mathbf v}
+\newcommand{\pivec}{\boldsymbol{\pi}}
+
+%innerproducts
+\newcommand{\inu}{\langle\uvec,\uvec\rangle}
+\newcommand{\ind}{\langle\Delta\uvec,\uvec\rangle}
+
+%edge orientations
+\newcommand{\up}{u_{e^+}}
+\newcommand{\um}{u_{e^-}}
+
+%Cheeger upper bound
+\newcommand{\bu}{B_\uvec}
+
+\lstset{
+    basicstyle = \sffamily\small
+}
+
+
+\begin{document}
+
+%%%%%%%%%% PRELIMINARY MATERIAL %%%%%%%%%%
+\maketitle
+\begin{center}
+An MSc project of 60 credit points. % change this
+\\[12pt]
+Supervised by Dr.\ Seth Bullock. % change this
+\end{center}
+\thispagestyle{empty}
+\newpage
+\section*{Acknowledgement of Sources} % this must be included in undergradate projects
+For all ideas taken from other sources (books, articles, internet), the source of the ideas is mentioned in the main text and fully referenced at the end of the report.
+
+All material which is quoted essentially word-for-word from other sources is given in quotation marks and referenced.
+
+Pictures and diagrams copied from the internet or other sources are labelled with a reference to the web page or book, article etc.
+\\[12pt]
+Signed \dotfill Date \dotfill
+
+\tableofcontents 
+
+%%%%%%%%%% MAIN TEXT STARTS HERE %%%%%%%%%%
+
+%%%%%%%%%% SAMPLE CHAPTER %%%%%%%%%%
+\chapter*{Executive Summary}
+%
+\
+
+\chapter*{Introduction}
+
+
+
+% Review
+
+\part{Research Areas}
+
+\chapter{Game Theory}
+
+\chapter{Graph Theory}
+
+\chapter{Random Graphs}
+
+\chapter{Towards an Accurate Social Network}
+
+\chapter{Co-operation in Systems}
+
+\chapter{Research Question}
+
+\part{Method and Results}
+
+\chapter{The Model}
+
+
+\chapter{Tools}
+
+The model for simulating the evolutionary co-operation model was implemented using Python 2.7. Python was chosen for its streamlined workflow, as well as the wide range of existing mathematical libraries available. One of the most important tools utilised in this project is the NetworkX module \cite{networkx}.
+
+\subsection{NetworkX}
+
+NetworkX is an intuitive Python package for creation, manipulation and visualisation of graph-structured data. It includes a wide range of functionality, including most of the standard random graph constructors, as well as functions for detemining graph properties, such as order, size and characteristic path length.
+
+NetworkX graph objects contain a list of nodes and edges, each of which is a Python dict, allowing the user to attach whatever kind of data they wish to the structure. As nodes and edges can be dynamically added and removed, this makes a perfect framework for the REDS constructor I will be implementing later in the project. As such it was natural to design my game simulation model to interface specifically with NetworkX graph objects. Another advantage is that most of the graph types tested on in Santos and Pacheco's original study \cite{santosorig} can be constructed natively in the NetworkX package. 
+
+\subsection{bitarray}
+
+
+\chapter{Evolutionary Co-operation System}
+
+
+\section{Method}
+
+
+
+
+\section{Results}
+
+
+
+\chapter{Constructing the REDS Graph}
+
+\section{Method}
+
+\section{Results}
+
+
+
+\chapter{Cooperation on REDS}
+
+\section{Method}
+
+\section{Results and analysis}
+
+
+\chapter{Dynamic REDS System}
+
+\section{Design}
+MOVE TO 'The Model' CHAPTER??
+
+\section{Method}
+
+\section{Results and analysis}
+
+
+\chapter{Discussion}
+
+
+\chapter{Conclusion}
+
+%%%%%%%%%% BIBLIOGRAPHY %%%%%%%%%%
+\begin{thebibliography}{9}
+
+\bibitem{santos2}
+Santos, F.P., Pacheco, J.M. \& Santos, F.C. (2016) ``Evolution of cooperation under indirect reciprocity and arbitrary exploration rates'', \emph{Scientific Reports}, Nature, \textbf{6}
+
+\bibitem{axelbook} 
+Axelrod, R. (1984) \emph{The Evolution of Cooperation} pp. 216
+
+\bibitem{socnetdisease} 
+Read, J.M., Eames, K.T.D \& Edmunds, W.J. (2008) ``Dynamic social networks and the implications for the spread of infectious disease'' \emph{J.R.Soc. Interface} \textbf{5} (26)
+
+\bibitem{ezeq1} 
+Di Paolo, E.A. (2000) ``Ecological symmetry breaking can favour the evolution of altruism in an action-response game'' \emph{Journal of Theoretical Biology} \textbf{203} pp. 135-152
+
+\bibitem{nowaklattice} Nowak, M. \& May, R. (1992) ``Evolutionary games and spatial chaos'' \emph{Letters to Nature}, Nature, \textbf{359} pp. 826-829
+
+\bibitem{RGGNaming} 
+Lu, Q., Korniss, G. \& Szymanski B.K. (2008) ``Naming games in two-dimensional and small-world-connected random geometric networks'' \emph{Phys Rev E Stat Nonlin Soft Matter Phys} \textbf{1} (2)
+
+\bibitem{REDS} 
+Antonioni, A., Bullock, S., \& Tomassini, M. (2014) ``REDS: An energy-constrained spatial social network model'' \emph{Complex Adaptive Systems: Artifical Life} \textbf{14} pp. 368-375
+
+\bibitem{westgriffin} 
+West, S. A., Griffin, A. S. and Gardner, A. (2007) ``Evolutionary Explanation for Cooperation'' \emph{Current Biology} \textbf{17} (16) R661-R672
+
+\bibitem{REDScontagion} 
+Antonioni, A., Bullock, S., Darabos, C., Giacobini, M., Iotti, B. N., Moore, J. H., \& Tomassini, M. (2015) ``Contagion on networks with self-organised community structure.'' \emph{Advances In Artificial Life} pp. 183-190
+
+\bibitem{myerson} 
+Myerson, R. B. (1991) \emph{Game Theory: Analysis of Conflict} Harvard University Press, pp. 1
+
+\bibitem{multiagent} 
+Shoham, Y. and Leyton-Brown, K. (2009) \emph{Multiagent Systems: Algorithmic, Game-Theoretic and Logical Foundations} New York: Cambridge University Press
+
+\bibitem{meerkat} 
+Griffin, A. S., Pemberton, J. M., Brotherton, P. N. M., McIlrath, G., Gaynor, D., Kansky, R., O'Riain, J. and Clutton-Brock, T.H. (2003) ``A genetic analysis of breeding success in the cooperative meerkat (Suricata suricatta)'' \emph{Behav. Ecol.} \textbf{14} pp. 472-480
+
+\bibitem{commons} 
+Hardin, G. (1968) ``The tragedy of the commons'' \emph{Science} \textbf{162} pp. 1243-1248
+
+\bibitem{microbe} 
+West, S. A., Griffin, A. S., Gardner, A. and Diggle, S. P. (2006) ``Social evolution theory for microbes'' \emph{Nat. Rev. Microbiol.} \textbf{4} pp. 597-607
+
+\bibitem{bullockpres} 
+Bullock, S. (2015) ``Contagion on networks with a self-organised community structure'' Presentation on 9th December 2015, Keele
+
+\bibitem{graph}
+Bondy, J. A. and Murty, U. S. R. (1976) \emph{Graph Theory with Applications} Elsevier Science Publishing; New York, NY
+
+\bibitem{krebsh}
+Krebbs, M. and Shaheen, A. (2011) \emph{Expander Families and Cayley Graphs} Oxford University Press; New York, NY
+
+\bibitem{ipr}
+Bianchini, M., Gori, M. and Scarselli, F. (2005) "Inside PageRank", \emph{ACM Transactions on Internet Technology}, \textbf{5} (1), pp. 92-128
+
+\bibitem{dipr}
+Langville, A. N. and Meyer, C. D. (2004) \emph{Deeper Inside PageRank} Tech. rep., North Carolina State University, NC
+
+\bibitem{bela}
+Bollobas, B. (1998) ``Random Graphs'' \emph{Modern Graph Theory} Springer; New York, NY pp. 215-252
+
+\bibitem{erdos}
+Erd\H{o}s, P. and R\'{e}nyi, A. (1959) ``On Random Graphs I'' \emph{Publicationes Mathematicae} \textbf{6} pp. 290-297
+
+\bibitem{gilbert}
+Gilbert, E. N. (1959) ``Random Graphs'' \emph{Annals of Mathematical Statistics} \textbf{30} pp. 1141-1144
+
+\bibitem{erdosextra}
+Erd\H{o}s, P. and R\'{e}nyi, A. (1960) ``On the evolution of random graphs'' \emph{Publications of the Mathematical Institute of the Hungarian Academy of Sciences} \textbf{5} pp.17-61
+
+\bibitem{cameron}
+Cameron, P.J. (1997) ``The random graph'' \emph{The mathematics of Paul Erd\H{o}s, II} Alg. Comb., \textbf{14} pp. 333-351
+
+\bibitem{rado}
+Erd\H{o}s, P., R\'{e}nyi, A. (1963) ``Asymmetric graphs'' \emph{Acta Mathematica Academiae Scientarium Hungaricae} \textbf{14} pp. 295-315
+
+\bibitem{wattstrog}
+Watts, D.J. \& Strogatz, S.H. (1998) ``Collective dynamics of `small-world' networks'' \emph{Letters to Nature} \textbf{393} pp. 440-442
+
+\bibitem{barrat}
+Barrat, A. \& Weigt, M. (2000) ``On the properties of small-world network models'' \emph{European Physical Journal B.} \textbf{13} (3) pp. 547-560
+
+\bibitem{barabasi}
+Barab\'{a}si, AL. \& Albert, R. (1999) ``Emergence of Scaling in Random Networks'' \emph{Science} \textbf{286} pp. 509-512
+
+\bibitem{reuven}
+Cohen, R. \& Havlin, Shlomo (2003) ``Scale-free Networks and Ultrasmall'' \emph{Physical Review Letters} \textbf{90} (5)
+
+\bibitem{belasf}
+Bollob\'{a}s, B. (2003) ``Mathematical results on scale-free random graphs'' \emph{Handbook of Graphs and Networks} pp. 1-37
+
+\bibitem{newman}
+Girvan, M. \& Newman, M.E.J. (2002) ``Community structure in social and biological networks'' \emph{Proc. Natl. Acad. Sci. USA} \textbf{99} (12)
+
+\bibitem{leone}
+Reichardt, J. \& Leone, M. (2008) ``(Un)detectable Cluster Structure in Sparse Networks'' \emph{Phys. Rev. Lett.} \textbf{101} pp. 1-4
+
+\bibitem{dall}
+Dall, J. and Christensen, M. (2002) ``Random Geometric Graphs'' \emph{Physical Review E} \textbf{66}
+
+\bibitem{rggassort}
+Antonioni, A. and Tomassini, M. (2012) ``Degree correlations in random geometric graphs'' \emph{Physical Review E} \textbf{86}
+
+\bibitem{ECRGG}
+Antonioni, A., Egloff, M. and Tomassini, M. (2013) ``An energy-based model for spatial social networks'' \emph{Advances in Artificial Life} pp. 192-199
+
+\bibitem{santosorig}
+Santos, F.C. and Pacheco, J.M. (2006) ``A new route to the evolution of cooperation'' \emph{Journal of Evolutionary Biology} \textbf{19} (3) pp. 726-733
+
+\bibitem{gintis}
+Gintis, H. (2000) \emph{Game theory evolving: A problem-centered introductionto modelling strategic behaviour} NJ: Princeton University Press
+
+\bibitem{barabasi02}
+Albert, R. and Barab\'{a}si, A. (2002) ``Statistical mechanics of complex networks'' \emph{Rev. Mod. Phys.} \textbf{74} pp. 47-97
+
+\bibitem{networkx}
+``NetworkX'' https://networkx.github.io/. Accessed $21$-$04$-$2017$
+\end{thebibliography}
+
+\end{document}
