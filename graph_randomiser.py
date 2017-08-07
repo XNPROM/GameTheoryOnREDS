@@ -26,7 +26,7 @@ def randomise_graph(G, p):
     if s < p :
       swap.append(e[0])
       swap.append(e[1])
-      G.remove_edge(e)
+      G.remove_edge(*e)
   
   rd.shuffle(swap)
   

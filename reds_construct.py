@@ -185,7 +185,25 @@ def social_properties(G) :
   G.graph['mean_degree'] = sum(degrees)/float(len(degrees))
   G.graph['mode_degree'] = max(set(degrees), key = degrees.count)
   G.graph['median_degree'] = stat.median(degrees)
-  
+ 
+# create RGG from REDS node position. reach defaults to original
+def RGG_from_REDS(REDS, reach=None, torus=True) :
+  n = len(REDS)
+  G = nx.Graph()
+  G.add_nodes_from(REDS.nodes(data=True))
+  if reach == None :
+    reach = REDS.graph['reach']
+  for i in range(n-1) :
+    u = G.node[i]
+    for j in range(i, n) :
+      v = G.node[j]
+      if torus == True :
+        d = torus_distance(u, v)
+      else :
+        d = distance(u, v)
+      if d < reach :
+        G.add_edge(i, j)
+  return G
   
 # drawing the graph
 def draw_graph(G) :
@@ -286,11 +304,12 @@ def print_mult_avg_degree(graphs) :
 def arrange(k) :
   return ((3-(k)/5)*5 + (k)%5 +1)
   
-  
+# range of REDS graphs over energy for specified synergy  
 def double_peak_search(order, synergy, steps) :
   graphs = [None for k in range(steps)]
   for s in range(steps) :
-    graphs[s] = reds_graph(order, 0.15, s/float(steps), synergy)
+    graphs[s] = reds_graph(order, 0.15, s/float(5*steps), synergy)
   return graphs
-    
+
+  
 #REDS = reds_graph(3000, 0.05, 0.09, 1)
