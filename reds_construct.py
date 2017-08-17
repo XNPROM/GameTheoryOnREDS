@@ -9,6 +9,7 @@ from scipy import stats
 import pickle
 import operator
 import os
+import os.path
 import time
 import community
 import statistics as stat
@@ -32,7 +33,7 @@ def multiple_reds(n, r, e, s, n_graphs) :
 
 # save 5 reds graphs for each parameter set over a range of e and s values
 def reds_range() :
-  E = map(lambda x: 3*x, [0.03, 0.09, 0.18, 0.27])
+  E = map(lambda x: x, [0.03, 0.09, 0.18, 0.27])
   S = [0, 0.25, 0.5, 0.75, 1]
   for e in E :
     for s in S :
@@ -272,14 +273,15 @@ def load_graph(filename) :
   
 # load a graph of each type from folder
 def load_graph_range(directory) :
-  graphs = [None for i in range(len(os.listdir(data_directory + directory)))]
+  graphs = []
   k = 0
   for filename in os.listdir(data_directory + directory) :
-    f = open(data_directory+directory+'\\'+filename, 'r')
-    nets = pickle.load(f)
-    f.close()
-    graphs[k] = nets[0]
-    k = k+1
+    if os.path.splitext(filename)[1] == '.redsgraph' :
+      f = open(data_directory+directory+'\\'+filename, 'r')
+      nets = pickle.load(f)
+      f.close()
+      graphs.append(nets[0])
+      k = k+1
   return graphs
     
 def plot_multiple_degree_dist(graphs) :
@@ -311,5 +313,14 @@ def double_peak_search(order, synergy, steps) :
     graphs[s] = reds_graph(order, 0.15, s/float(5*steps), synergy)
   return graphs
 
+def mean_deg_search() :
+  energy_index = [x/float(30) for x in range(10)]
+  synergy_index = [y/float(10) for y in range(10)]
+  graphs = {}
+  for e in energy_index :
+    graphs[str(e)] = {}
+    for s in synergy_index :
+      graphs[str(e)][str(s)] = reds_graph(1000, 0.15, e, s)
+  return graphs
   
 #REDS = reds_graph(3000, 0.05, 0.09, 1)
