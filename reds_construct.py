@@ -14,6 +14,7 @@ import time
 import community
 import statistics as stat
 import graph_randomiser as gr
+import seaborn as sns
 
 rd.seed(4)
 
@@ -48,7 +49,7 @@ def reds_range() :
   
       
 # return a networkx REDS graph with specified order, reach, energy and synergy
-def reds_graph(n, r, e, s, torus=True) :
+def reds_graph(n, r, e, s, torus=True, suppress=False) :
   start = int(round(time.time()))
   G = nx.Graph()
   G.graph['reach'] = r
@@ -76,8 +77,9 @@ def reds_graph(n, r, e, s, torus=True) :
     
   running = True
   while running :
-    print('number of edges = '+str(G.size()))
-    running = update(G)
+    if suppress == False :
+      print('number of edges = '+str(G.size()))
+    running = update(G, suppress)
   
   end = int(round(time.time()))
   print('total elapsed time = '+sec_to_string(end-start))
@@ -85,12 +87,13 @@ def reds_graph(n, r, e, s, torus=True) :
   return G
 
 # one update step
-def update(G) :
+def update(G, suppress = False) :
   free_nodes = [k for k in range(len(G)) if len(G.node[k]['available']) > 0]
   if len(free_nodes) == 0:
     return False
   else :
-    print('                           free nodes = '+str(len(free_nodes)))
+    if suppress == False :
+      print('                           free nodes = '+str(len(free_nodes)))
     i = rd.choice(free_nodes)
     j = rd.sample(G.node[i]['available'], 1)[0]
     G.add_edge(i, j)
@@ -178,9 +181,14 @@ def sec_to_string(seconds) :
 def social_properties(G) :
   G.graph['clustering'] = nx.average_clustering(G)
   G.graph['transitivity'] = nx.transitivity(G)
-  G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
+  try : 
+    G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
+  except ValueError :
+    G.graph['assortativity'] = None
   if nx.is_connected(G) : 
     G.graph['char_path_length'] = nx.average_shortest_path_length(G)
+  else :
+    G.graph['char_path_length'] = 0
   degrees = G.degree().values()
   G.graph['max_degree'] = max(degrees)
   G.graph['mean_degree'] = sum(degrees)/float(len(degrees))
@@ -211,8 +219,8 @@ def draw_graph(G) :
   coord = nx.get_node_attributes(G, 'pos')
   degrees = nx.degree_centrality(G)
   costs = [cost(G, i, j) for i,j in G.edges()]
-  nx.draw_networkx_edges(G, pos = coord, edge_color = costs, alpha = 0.7)
-  nx.draw_networkx_nodes(G, pos = coord, node_color = list(degrees.values()), node_size = 30)
+  nx.draw_networkx_edges(G, pos = coord, edge_color = costs, cmap=plt.get_cmap('gnuplot'), alpha = 0.7)
+  nx.draw_networkx_nodes(G, pos = coord, node_color = list(degrees.values()), cmap=plt.get_cmap('gnuplot'), node_size = 30)
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
   plt.show()
@@ -314,13 +322,30 @@ def double_peak_search(order, synergy, steps) :
   return graphs
 
 def mean_deg_search() :
-  energy_index = [x/float(30) for x in range(10)]
-  synergy_index = [y/float(10) for y in range(10)]
+  energy_index = [(x+1)/float(30) for x in range(9)]
+  synergy_index = [y/float(10) for y in range(11)]
   graphs = {}
   for e in energy_index :
-    graphs[str(e)] = {}
+    graphs[str('%.3f' % e)] = {}
     for s in synergy_index :
       graphs[str(e)][str(s)] = reds_graph(1000, 0.15, e, s)
   return graphs
-  
-#REDS = reds_graph(3000, 0.05, 0.09, 1)
+
+
+#for k, v in md_search.iteritems() :
+#  for l, g in v.iteritems() :
+#    social_properties(g)
+#md_prop = {k: {l: g.graph for l, g in v.iteritems()} for k, v in graphs.iteritems()}
+
+def mean_deg_heatmap(md_prop) :
+  md = {k: {l: u['mean_degree'] for l, u in v.iteritems()} for k, v in md_prop.iteritems()}
+  md_df = pd.DataFrame(md).T.iloc[::-1]
+  trunc_col = map(lambda s : s[:4]+'..' if len(s) > 4 else s, md_df.columns)
+  md_df.columns = trunc_col
+  sns.heatmap(md_df, annot=True, cmap = plt.get_cmap('gnuplot')) #color
+  plt.title('Heatmap of mean degrees of REDS graphs over S and E', fontsize=20)
+  plt.ylabel('Energy', fontsize=20)
+  plt.xlabel('Synergy', fontsize=20)
+  plt.show()
+
+#sns.heatmap(md_df)
