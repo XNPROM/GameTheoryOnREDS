@@ -32,14 +32,6 @@ def multiple_reds(n, r, e, s, n_graphs) :
   pickle.dump(networks, f)
   f.close()
 
-# save 5 reds graphs for each parameter set over a range of e and s values
-def reds_range() :
-  E = map(lambda x: x, [0.03, 0.09, 0.18, 0.27])
-  S = [0, 0.25, 0.5, 0.75, 1]
-  for e in E :
-    for s in S :
-      multiple_reds(1000, 0.15, e, s, 5)
-
 # return a small-world REDS graphs
 #def small_world_reds_graph(n, r, e, s) :
  # G = reds_graph(n, r, e, s)
@@ -69,7 +61,7 @@ def reds_graph(n, r, e, s, torus=True, suppress=False) :
         d = torus_distance(u, v)
       else :
         d = distance(u, v)
-      if d < r :
+      if d < r and u != v:
         u['in_range'][str(j)] = d
         v['in_range'][str(i)] = d
   for i in range(n) :
@@ -108,21 +100,21 @@ def cost(G, i, j) :
 
 # current energy expended on maintaining edges by i
 def current_cost(G, i) :
-  total = 0
+  total = 0.0
   for j in G.neighbors(i) :
-    total += cost(G, i, j)
+    total = total + cost(G, i, j)
   return total
  
  # theoretical total costs of edge between i and j. if edge exists
  # cost is greater than total energy, as multi-graph not allowed
 def theoretical_costs(G, i, j) :
   if G.has_edge(i, j) :
-    cost = [G.graph['energy'] + 1, G.graph['energy'] + 1]
+    cst = [G.graph['energy'] + 1, G.graph['energy'] + 1]
   else :
-    G.add_edge(i, j)
-    cost = [current_cost(G, i), current_cost(G, j)]
-    G.remove_edge(i, j)
-  return cost
+    #G.add_edge(i, j)
+    cst = [current_cost(G, i) + cost(G, i, j), current_cost(G, j) + cost(G, i, j)]#[current_cost(G, i), current_cost(G, j)]
+    #G.remove_edge(i, j)
+  return cst
 
 # update set of possible edges for edge i
 def update_theoreticals(G, i) :
@@ -260,8 +252,8 @@ def plot_degree_distribution(G) :
   values = sorted(set(degrees.values()))
   hist = [degrees.values().count(x) for x in values]
   plt.plot(values, hist, 'b-')
-  plt.xlim(0, 200)
-  plt.ylim(0, 500)
+  #plt.xlim(0, 200)
+  #plt.ylim(0, 500)
  
 # save graph
 def save_graph(G) :
@@ -292,18 +284,39 @@ def load_graph_range(directory) :
       k = k+1
   return graphs
     
-def plot_multiple_degree_dist(graphs) :
-  sort = sorted(graphs, key=lambda g: (g.graph['energy'], g.graph['synergy']))
-  for k in range(len(graphs)) :
-    plt.subplot(4, 5, arrange(k))
-    plt.xticks([])
-    plt.yticks([])
-    if arrange(k)%5 == 1 :
-      plt.ylabel('E='+str(sort[k].graph['energy']))
-    if (arrange(k)-1)/5 == 3 :
-      plt.xlabel('S='+str(sort[k].graph['synergy']))
-    plot_degree_distribution(sort[k])
-  plt.show()
+def plot_multiple_degree_dist(graph_df, dir) :
+  df = graph_df.copy().T.iloc[::-1].T
+  if '0.0' in df.columns :
+    df.pop('0.0')
+  plt.figure(figsize = (1600/my_dpi, 1200/my_dpi), dpi = my_dpi)
+  fig = plt.gcf()
+  ax = fig.add_subplot(111)
+  ax.spines['top'].set_color('none')
+  ax.spines['bottom'].set_color('none')
+  ax.spines['left'].set_color('none')
+  ax.spines['right'].set_color('none')
+  ax.tick_params(labelcolor='w', top='off', bottom='off', left='off', right='off')
+  k=0
+  max_deg = max(df.applymap(lambda g : g.graph['max_degree']).apply(lambda col : max(col)))
+  max_freq = max(df.applymap(lambda g : max([g.degree().values().count(x) for x in set(g.degree().values())])).apply(lambda col : max(col)))
+  for e, v in df.iteritems() :
+    for s, g in v.iteritems() :
+      k=k+1
+      fig.add_subplot(len(df.iloc[0]), len(df), k)
+      plot_degree_distribution(g)
+      plt.xlim(0, max_deg)
+      plt.ylim(0, max_freq)
+      plt.xticks([])
+      plt.yticks([])
+      if (k-1)/len(df) >= (len(df.iloc[0])-1) :
+        plt.xlabel(s, fontsize=14)
+      if k % len(df) == 1 : 
+        plt.ylabel(e, fontsize=14)
+  fig.suptitle('Degree distributions of R=0.1 REDS graphs', fontsize=20)
+  ax.set_xlabel('Synergy', fontsize=20)
+  ax.set_ylabel('Energy', fontsize=20)
+  plt.savefig(data_directory+dir+'\\degree_dist.png', dpi = my_dpi)
+  
   
 def print_mult_avg_degree(graphs) :
   sort = sorted(graphs, key=lambda g: (g.graph['energy'], g.graph['synergy']))
@@ -331,11 +344,39 @@ def mean_deg_search() :
       graphs[str(e)][str(s)] = reds_graph(1000, 0.15, e, s)
   return graphs
 
+def reds_range() :
+  energy_index = [x/float(30) for x in range(10)]
+  synergy_index = [y/float(10) for y in range(11)]
+  graphs = {}
+  for e in energy_index :
+    graphs[str(e)] = {}
+    print('e='+str(e))
+    for s in synergy_index :
+      graphs[str(e)][str(s)] = reds_graph(1000, 0.1, e, s, suppress = True)
+      print('s='+str(s))
+  return graphs
 
 #for k, v in md_search.iteritems() :
 #  for l, g in v.iteritems() :
 #    social_properties(g)
 #md_prop = {k: {l: g.graph for l, g in v.iteritems()} for k, v in graphs.iteritems()}
+
+def heatmaps(graph_df, dir) :
+  tags = {'mean_degree': 'Mean Degree', 'clustering': 'Clustering Coefficient', 'assortativity': 'Assortativity', 'char_path_length': 'Characteristic Path Length'}
+  my_dpi = 96
+  for k, v in tags.iteritems() :
+    print(k)
+    plt.figure(figsize = (1200/my_dpi, 1200/my_dpi), dpi = my_dpi)
+    df = graph_df.applymap(lambda p : p.graph[k]).T.iloc[::-1]
+    df.index = map(lambda s : s[:4]+'..' if len(s) > 4 else s, df.index)
+    sns.heatmap(df, annot=True, cmap = plt.get_cmap('gnuplot'))
+    plt.title(v, fontsize=20)
+    plt.tick_params(labelsize=14)
+    plt.xlabel('Synergy', fontsize=20)
+    plt.ylabel('Energy', fontsize=20)
+    plt.savefig(data_directory+dir+'\\'+k+'.png', dpi = my_dpi)
+
+
 
 def mean_deg_heatmap(md_prop) :
   md = {k: {l: u['mean_degree'] for l, u in v.iteritems()} for k, v in md_prop.iteritems()}

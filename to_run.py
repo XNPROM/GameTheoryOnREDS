@@ -20,3 +20,8 @@ plt.show()
 figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
 
 
+range1 = reds_range()
+range1_df = pd.DataFrame(range1)
+f = open(data_directory+'REDSrange1\\graph_df.redsgraph', 'w')
+pickle.dump(range1_df, f)
+f.close()
