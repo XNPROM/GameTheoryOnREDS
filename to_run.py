@@ -29,3 +29,6 @@ f.close()
 
 reds_sim = gsd.full_sim_for_family('REDS', rc.reds_graph, [1000, 0.1, 0.15, 1.0], 5, 5, 1e4, 1e3)
 gsd.save_sim_data(reds_sim)
+
+
+cProfile.run('full_sim(G, 1.6, 1e3, 1e2)', sort='tottime')

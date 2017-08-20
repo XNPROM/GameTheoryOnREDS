@@ -50,6 +50,7 @@ def init(network) :
   global N 
   N = len(network)
   cnt = 0
+  network.graph['degrees'] = [network.degree(node) for node in range(len(network))]
   for i in range(N) :
     network.node[i]['payoff'] = 0
     network.node[i]['strategy'] = False
@@ -94,7 +95,7 @@ def new_strategy(network, node) :
   global b
   v = rd.choice(network.neighbors(node))
   if network.node[node]['payoff'] < network.node[v]['payoff'] :
-    p = (network.node[v]['payoff'] - network.node[node]['payoff'])/(max(network.degree(node), network.degree(v))*b)
+    p = (network.node[v]['payoff'] - network.node[node]['payoff'])/(max(network.graph['degrees'][node], network.graph['degrees'][v])*b)
     s = rd.random()
     if (s < p) :
       return network.node[v]['strategy']
