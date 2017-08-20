@@ -67,7 +67,7 @@ def sim(network, B, n_mix = int(1e4), n_data = int(1e3)) :
   global payoff
   b = B
   payoff = [[0, int(b*100.0)],[0, 100]]
-  data = [bitarray([False for x in range(len(network))]) for y in range(int(n_data))]
+  data = [bitarray([False for x in network.nodes()]) for y in range(int(n_data))]
   for i in range(n_mix) :
     run_network_game(network)
     strategy_update(network)  
