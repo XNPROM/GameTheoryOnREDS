@@ -41,7 +41,7 @@ def multiple_reds(n, r, e, s, n_graphs) :
   
       
 # return a networkx REDS graph with specified order, reach, energy and synergy
-def reds_graph(n, r, e, s, torus=True, suppress=False) :
+def reds_graph(n, r, e, s, torus=True, suppress=True) :
   start = int(round(time.time()))
   G = nx.Graph()
   G.graph['reach'] = r
@@ -176,7 +176,7 @@ def social_properties(G) :
   try : 
     G.graph['assortativity'] = nx.degree_assortativity_coefficient(G)
   except ValueError :
-    G.graph['assortativity'] = None
+    G.graph['assortativity'] = 0
   if nx.is_connected(G) : 
     G.graph['char_path_length'] = nx.average_shortest_path_length(G)
   else :
@@ -376,6 +376,24 @@ def heatmaps(graph_df, dir) :
     plt.ylabel('Energy', fontsize=20)
     plt.savefig(data_directory+dir+'\\'+k+'.png', dpi = my_dpi)
 
+def heatmaps_fig(graph_df, dir) :
+  tags = {'mean_degree': 'Mean Degree', 'clustering': 'Clustering Coefficient', 'assortativity': 'Assortativity'}
+  my_dpi = 96
+  fig = plt.figure(figsize = (1920/my_dpi, 720/my_dpi), dpi = my_dpi)
+  i = 0
+  for k, v in tags.iteritems() :
+    print(k)
+    i = i+1
+    fig.add_subplot(1, 3, i)
+    df = graph_df.applymap(lambda p : p.graph[k]).T.iloc[::-1]
+    df.index = map(lambda s : s[:4]+'..' if len(s) > 4 else s, df.index)
+    sns.heatmap(df, cmap = plt.get_cmap('gnuplot'))
+    plt.title(v, fontsize=20)
+    plt.tick_params(labelsize=12)
+    plt.xlabel('Synergy', fontsize=16)
+    plt.ylabel('Energy', fontsize=16)
+    plt.yticks(rotation=0)
+  plt.savefig(data_directory+dir+'\\heatmaps.png', dpi = my_dpi)
 
 
 def mean_deg_heatmap(md_prop) :
@@ -389,4 +407,46 @@ def mean_deg_heatmap(md_prop) :
   plt.xlabel('Synergy', fontsize=20)
   plt.show()
 
-#sns.heatmap(md_df)
+# Searches through R and E parameter space for n=1000, s = 1 
+# networks to find connected mean degree 4 networks. Avoids the
+# saturated region for performance.
+def param_search(e_step, r_step) :
+  n = 1000
+  s = 1.0
+  df = {}
+  r = r_step
+  e = e_step
+  df[str(r)] = {}
+  cnt = 0
+  match = []
+  while cnt < 10000 :
+    print('r = '+str(r)+'      e = '+str(e))
+    cnt = cnt+1
+    G = reds_graph(n, r, e, s, suppress=True)
+    social_properties(G)
+    df[str(r)][str(e)] = G.graph
+    if abs(float(G.graph['mean_degree'])-4) < 1 and nx.is_connected(G) :
+      match.append(G.graph)
+      print('MATCH!!!!!!!!!!!!!!!!!')
+    if G.graph['mean_degree'] > 5 or e > 0.5:
+      e = e_step
+      r = r + r_step
+      df[str(r)] = {}
+    else :
+      e = e + e_step
+    if r > 0.5 :
+      return [df, match]
+  return [df, match]
+
+  
+def converge_to_RGG_plot(graph_df) :
+  REDS = graph_df.T['1.0']
+  RGG = REDS.map(lambda g : RGG_from_REDS(g))
+  REDS_size = REDS.map(lambda g : g.size())
+  RGG_size = RGG.map(lambda g : g.size())
+  my_dpi = 96
+  fig = plt.figure(1200/my_dpi, 1200/my_dpi)
+  
+  size_df = graph_df.(lambda g : g.size())
+  sizes = size_df.T['1.0']
+  plt.plot(map(lambda s float(s), sizes.index), sizes.values)

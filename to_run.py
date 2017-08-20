@@ -25,3 +25,7 @@ range1_df = pd.DataFrame(range1)
 f = open(data_directory+'REDSrange1\\graph_df.redsgraph', 'w')
 pickle.dump(range1_df, f)
 f.close()
+
+
+reds_sim = gsd.full_sim_for_family('REDS', rc.reds_graph, [1000, 0.1, 0.15, 1.0], 5, 5, 1e4, 1e3)
+gsd.save_sim_data(reds_sim)

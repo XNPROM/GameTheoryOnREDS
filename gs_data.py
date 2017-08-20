@@ -48,7 +48,7 @@ def sec_to_string(seconds) :
 
 # run a full simulation for with specified (networkx) graph constructor
 # and specified parameters
-def full_sim_for_family(graph_name, graph_constructor, params, n_networks=10, sims_per_network=10, burn_in=1e4, n_samples=1e3) :
+def full_sim_for_family(graph_name, graph_constructor, params, n_networks=5, sims_per_network=5, burn_in=1e4, n_samples=1e3) :
   simulation = {}
   simulation['graph_name'] = graph_name
   simulation['params'] = params

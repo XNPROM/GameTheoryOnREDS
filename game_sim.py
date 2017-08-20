@@ -28,7 +28,7 @@ from scipy import stats
 from bitarray import bitarray
 import pickle
 
-global b, N
+global b, N, payoff
 
 rd.seed(3)
 
@@ -37,10 +37,14 @@ def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20) :
   data = [None for x in range(n_steps)]
   for i in range(n_steps) :
     print(str(i/float(n_steps)*100)+'%')
-    init(network)
-    data[i] = sim(network, 1+i/float(n_steps))
+    data[i] = full_sim(network, 1+i/float(n_steps), n_mix, n_data)
   return data
 
+def full_sim(network, B, n_mix=int(1e4), n_data = int(1e3)) :
+  init(network)
+  data = sim(network, B, int(n_mix), int(n_data))
+  return data
+  
 # initialise payoff and strategy fields
 def init(network) :
   global N 
@@ -58,8 +62,10 @@ def init(network) :
 # run simulation and return data from final 1e3 iterations
 def sim(network, B, n_mix = int(1e4), n_data = int(1e3)) :
   global b
+  global payoff
   b = B
-  data = [bitarray([False for x in range(len(network))]) for y in range(n_data)]
+  payoff = [[0, int(b*100.0)],[0, 100]]
+  data = [bitarray([False for x in range(len(network))]) for y in range(int(n_data))]
   for i in range(n_mix) :
     run_network_game(network)
     strategy_update(network)  
@@ -105,21 +111,30 @@ def run_network_game(network) :
 
 # single game between two nodes
 def play_game(network, vertex1, vertex2) :
-  global b
-  if network.node[vertex1]['strategy'] and network.node[vertex2]['strategy'] :
-    network.node[vertex1]['payoff'] += 1
-    network.node[vertex2]['payoff'] += 1
-  elif network.node[vertex1]['strategy'] and not network.node[vertex2]['strategy'] :
-    network.node[vertex1]['payoff'] += 0
-    network.node[vertex2]['payoff'] += b
-  elif not network.node[vertex1]['strategy'] and network.node[vertex2]['strategy'] :
-    network.node[vertex1]['payoff'] += b
-    network.node[vertex2]['payoff'] += 0
-  else :
-    network.node[vertex1]['payoff'] += 0 
-    network.node[vertex2]['payoff'] += 0
+  global payoff
+  v1 = network.node[vertex1]
+  v2 = network.node[vertex2]
+  s1 = v1['strategy']
+  s2 = v2['strategy']
+  v1['payoff'] += payoff[s1][s2]
+  v2['payoff'] += payoff[s2][s1]
+  
+  
+#  if network.node[vertex1]['strategy'] and network.node[vertex2]['strategy'] :
+#    network.node[vertex1]['payoff'] += 1.0
+#    network.node[vertex2]['payoff'] += 1.0
+#  elif network.node[vertex1]['strategy'] and not network.node[vertex2]['strategy'] :
+#    network.node[vertex1]['payoff'] += 0.0
+#    network.node[vertex2]['payoff'] += b
+#  elif not network.node[vertex1]['strategy'] and network.node[vertex2]['strategy'] :
+#    network.node[vertex1]['payoff'] += b
+#    network.node[vertex2]['payoff'] += 0.0
+#  else :
+#    network.node[vertex1]['payoff'] += 0.0
+#    network.node[vertex2]['payoff'] += 0.0
 
-
+    
+    
 # analysis
 
 # averages over cooperation ratios from the sample data
