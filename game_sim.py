@@ -54,7 +54,7 @@ def init(network) :
   for i in range(N) :
     network.node[i]['payoff'] = 0
     network.node[i]['strategy'] = False
-    network.node[i]['neighbors'] = G.neighbors(i)
+    network.node[i]['neighbors'] = network.neighbors(i)
   while cnt < N/2 :
     s = mt.floor(rd.random()*N)
     if not network.node[s]['strategy'] :
