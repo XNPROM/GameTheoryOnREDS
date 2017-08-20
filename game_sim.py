@@ -50,10 +50,11 @@ def init(network) :
   global N 
   N = len(network)
   cnt = 0
-  network.graph['degrees'] = [network.degree(node) for node in range(len(network))]
+  network.graph['degrees'] = [network.degree(node) for node in network.nodes()]
   for i in range(N) :
     network.node[i]['payoff'] = 0
     network.node[i]['strategy'] = False
+    network.node[i]['neighbors'] = G.neighbors(i)
   while cnt < N/2 :
     s = mt.floor(rd.random()*N)
     if not network.node[s]['strategy'] :
@@ -84,18 +85,16 @@ def record_data(network, data_array) :
 
 # update strategy of each node
 def strategy_update(network) :
-  new_strategies = [None for x in range(len(network))]
-  for u in range(len(network)) :
-    new_strategies[u] = new_strategy(network, u)
-  for q in range(len(new_strategies)) :
+  new_strategies = [new_strategy(network, u) for u in network.nodes()]
+  for q in network.nodes() :
     network.node[q]['strategy'] = new_strategies[q]
 
 # return new strategy for a single node
 def new_strategy(network, node) :
   global b
-  v = rd.choice(network.neighbors(node))
+  v = rd.choice(network.node[node]['neighbors'])
   if network.node[node]['payoff'] < network.node[v]['payoff'] :
-    p = (network.node[v]['payoff'] - network.node[node]['payoff'])/(max(network.graph['degrees'][node], network.graph['degrees'][v])*b)
+    p = (network.node[v]['payoff'] - network.node[node]['payoff'])/(max(network.graph['degrees'][node], network.graph['degrees'][v])*b*100.0)
     s = rd.random()
     if (s < p) :
       return network.node[v]['strategy']
@@ -104,13 +103,21 @@ def new_strategy(network, node) :
 
 # update node payoffs
 def run_network_game(network) :
-  for v in network.nodes() :
-    network.node[v]['payoff'] = 0
-  for e in network.edges() :
-    play_game(network, e[0], e[1])
+  for u in network.nodes() :
+    network.node[u]['payoff'] = accum_payoff(network, u)   
 
 
-# single game between two nodes
+# return the acumulated payoff of node u
+def accum_payoff(network, u) :
+  global payoff
+  p = 0
+  s_u = network.node[u]['strategy']
+  for v in network.node[u]['neighbors'] :
+    s_v = network.node[v]['strategy']
+    p += payoff[s_u][s_v]
+  return p
+
+# single game between two nodes: DEPRECATED
 def play_game(network, vertex1, vertex2) :
   global payoff
   v1 = network.node[vertex1]
