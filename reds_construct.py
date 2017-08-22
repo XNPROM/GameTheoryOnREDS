@@ -5,7 +5,9 @@ import pandas as pd
 import random as rd
 import networkx as nx
 import math as mt
+import scipy
 from scipy import stats
+from sklearn.preprocessing import normalize
 import pickle
 import operator
 import os
@@ -32,12 +34,12 @@ def multiple_reds(n, r, e, s, n_graphs) :
   pickle.dump(networks, f)
   f.close()
 
-# return a small-world REDS graphs
-#def small_world_reds_graph(n, r, e, s) :
- # G = reds_graph(n, r, e, s)
-  #G.graph['small-world'] = True
-  #for i in range(G.size()-1) :
-   # for 
+# return a small-world REDS graph
+def small_world_reds_graph(n, r, e, s, p, torus = True, suppress=True) :
+  G = reds_graph(n, r, e, s, torus, suppress)
+  G.graph['small-world'] = True
+  gr.randomise_graph(G, p)
+  return G
   
       
 # return a networkx REDS graph with specified order, reach, energy and synergy
@@ -186,26 +188,77 @@ def social_properties(G) :
   G.graph['mean_degree'] = sum(degrees)/float(len(degrees))
   G.graph['mode_degree'] = max(set(degrees), key = degrees.count)
   G.graph['median_degree'] = stat.median(degrees)
+  G.graph['spectral_gap'] = pr_spectral_gap(G)
+
+# compute the spectral gap of the graph  
+def pr_spectral_gap(G) :
+  A = nx.adjacency_matrix(G)
+  n = len(G)
+  P = normalize(A, norm='l1', axis=1)
+  eig = scipy.sparse.linalg.eigs(P, k=2, return_eigenvectors=False, which='LR')
+  #print(eig)
+  return np.real(max(eig)-min(eig)).item()
  
 # create RGG from REDS node position. reach defaults to original
-def RGG_from_REDS(REDS, reach=None, torus=True) :
+def RGG_from_REDS(REDS, mean_deg=None, torus=True) :
   n = len(REDS)
   G = nx.Graph()
   G.add_nodes_from(REDS.nodes(data=True))
-  if reach == None :
+  dist = torus_distance if torus == True else distance
+  if mean_deg == None :
     reach = REDS.graph['reach']
+    for i in range(n-1) :
+      u = G.node[i]
+      for j in range(i, n) :
+        v = G.node[j]
+        if torus == True :
+          d = torus_distance(u, v)
+        else :
+          d = distance(u, v)
+        if d < reach :
+          if i != j :
+            G.add_edge(i, j)
+  else :
+    required_size = n*mean_deg/2
+    edge_dists = {}
+    for i in range(n-1) :
+      u = G.node[i]
+      for j in range(i+1, n) :
+        v = G.node[j]
+        edge_dists[dist(u, v)] = (i, j)
+    cnt = 0
+    for d in sorted(edge_dists) :
+      G.add_edge(*edge_dists[d])
+      cnt = cnt + 1
+      if cnt >= required_size :
+        G.graph['reach'] = d
+        return G
+  return G
+
+def RGG_md_graph(n, mean_deg, torus=True) :
+  dist = torus_distance if torus == True else distance
+  G = nx.Graph()
+  G.add_nodes_from(range(n))
+  for i in range(len(G)) :
+    G.node[i]['pos'] = [rd.random() for k in range(2)]
+  required_size = n*mean_deg/2
+  edge_dists = {}
   for i in range(n-1) :
     u = G.node[i]
-    for j in range(i, n) :
+    for j in range(i+1, n) :
       v = G.node[j]
-      if torus == True :
-        d = torus_distance(u, v)
-      else :
-        d = distance(u, v)
-      if d < reach :
-        G.add_edge(i, j)
+      edge_dists[dist(u, v)] = (i, j)
+  cnt = 0
+  for d in sorted(edge_dists) :
+    G.add_edge(*edge_dists[d])
+    cnt = cnt + 1
+    if cnt >= required_size :
+      G.graph['reach'] = d
+      return G
+  G.graph['reach'] = mt.sqrt(2)
   return G
-  
+    
+
 # drawing the graph
 def draw_graph(G) :
   coord = nx.get_node_attributes(G, 'pos')
@@ -246,12 +299,15 @@ def draw_communities_spring(G) :
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
   plt.show()
- 
+
+# plot the degree distribution of a network  
 def plot_degree_distribution(G) :
   degrees = G.degree()
   values = sorted(set(degrees.values()))
   hist = [degrees.values().count(x) for x in values]
-  plt.plot(values, hist, 'b-')
+  plt.plot(values, hist, 'g-', linewidth=3.0)
+  plt.xlabel('Degree', fontsize = 15)
+  plt.ylabel('Freq', fontsize = 15)
   #plt.xlim(0, 200)
   #plt.ylim(0, 500)
  
@@ -283,7 +339,11 @@ def load_graph_range(directory) :
       graphs.append(nets[0])
       k = k+1
   return graphs
-    
+
+# plot degree distributions of a range of reds networks
+# inputs are a pandas dataframe with energy values as columns
+# and synergy as rows, and the name of the directory in which to
+# output.  
 def plot_multiple_degree_dist(graph_df, dir) :
   df = graph_df.copy().T.iloc[::-1].T
   if '0.0' in df.columns :
@@ -444,9 +504,66 @@ def converge_to_RGG_plot(graph_df) :
   RGG = REDS.map(lambda g : RGG_from_REDS(g))
   REDS_size = REDS.map(lambda g : g.size())
   RGG_size = RGG.map(lambda g : g.size())
+  energy = map(float, REDS_size.index)
   my_dpi = 96
-  fig = plt.figure(1200/my_dpi, 1200/my_dpi)
+  fig = plt.figure(figsize=(1200/my_dpi, 1200/my_dpi), dpi=my_dpi)
+  plt.plot(energy, REDS_size.values, 'g-', label='REDS')
+  plt.plot(energy, RGG_size.values, 'b-', label='RGG')
+  plt.show()
+
+
+def setup_graph_dict() :
+  graph_dict = {'regular': [], 'erdos-renyi' : [], 'reds' : [], 'rgg' : [], 'sw_reds' : [], 'barabasi-albert' : []}
+  for i in range(10) :
+    graph_dict['regular'].append(nx.watts_strogatz_graph(1000, 10, 0))
+    graph_dict['erdos-renyi'].append(nx.watts_strogatz_graph(1000, 10, 1))
+    graph_dict['barabasi-albert'].append(nx.barabasi_albert_graph(1000, 5))
+    
+    reds = reds_graph(1000, 0.1, 0.146, 1.0)
+    while not nx.is_connected(reds) :
+      reds = reds_graph(1000, 0.1, 0.146, 1.0)
+      
+    graph_dict['reds'].append(reds)
+    graph_dict['rgg'].append(RGG_from_REDS(reds, mean_deg=10))
+    
+    sw_reds = small_world_reds_graph(1000, 0.1, 0.146, 1.0, 0.2)
+    while not nx.is_connected(sw_reds) :
+      sw_reds = small_world_reds_graph(1000, 0.1, 0.146, 1.0, 0.2)
+      
+    graph_dict['sw_reds'].append(sw_reds)
   
-  size_df = graph_df.(lambda g : g.size())
-  sizes = size_df.T['1.0']
-  plt.plot(map(lambda s float(s), sizes.index), sizes.values)
+  for k, l in graph_dict.iteritems() :
+    for g in l :
+      social_properties(g)
+  return graph_dict
+  
+def mean_properties(graph_dict) :
+  n = len(graph_dict)
+  props = {k: map(lambda g : g.graph, l) for k, l in graph_dict.iteritems()}
+  means = {k: pd.DataFrame(l).mean() for k, l in props.iteritems()}
+  return pd.DataFrame(means)
+  
+def compare_degree_distribution_plot(graph_dict) :
+  n = len(graph_dict)    
+  my_dpi = 96
+  fig = plt.figure(figsize = (1920/my_dpi, 720/my_dpi), dpi = my_dpi)
+  i = 0
+  filename = 'compare_degree'
+  for k, v in graph_dict.iteritems() :
+    i = i+1
+    filename = filename+'_'+k
+    fig.add_subplot(1, n, i)
+    average_degree_distribution(v)
+    plt.title(k, fontsize=18)
+  plt.savefig(data_directory+filename+'.png', dpi = my_dpi)
+  
+def average_degree_distribution(graph_list) :
+  values_list = [set(g.degree().values()) for g in graph_list]
+  values_set = reduce(lambda x,y : x.union(y), values_list)
+  values = sorted(values_set)
+  hist_list = [[g.degree().values().count(x) for x in values] for g in graph_list]
+  hist = reduce(lambda x, y : map(lambda x_i, y_i : x_i + y_i, x, y), hist_list)
+  norm_hist = map(lambda f : f/float(len(graph_list)), hist)
+  plt.plot(values, norm_hist, 'g-', linewidth = 3.0)
+  plt.xlabel('Degree', fontsize = 15)
+  plt.ylabel('Freq', fontsize = 15)

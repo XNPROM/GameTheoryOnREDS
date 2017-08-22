@@ -32,3 +32,36 @@ gsd.save_sim_data(reds_sim)
 
 
 cProfile.run('full_sim(G, 1.6, 1e3, 1e2)', sort='tottime')
+
+
+graph_dict = setup_graph_dict()
+compare_degree_distribution_plot(graph_dict)
+
+# Mockup
+import reds_construct as rc
+import gs_data as gsd
+import gs_analysis as gsa
+import networkx as nx
+import matplotlib.pyplot as plt
+
+erdos_sim = gsd.full_sim_for_family('erdos_renyi', nx.watts_strogatz_graph, [1000, 10, 1], 1, 1, 1e4, 1e3)
+gsa.full_analysis(erdos_sim)
+gsd.save_sim_data(erdos_sim)
+
+barabasi_sim = gsd.full_sim_for_family('barabasi_albert', nx.barabasi_albert_graph, [1000, 5], 1, 1, 1e4, 1e3)
+gsa.full_analysis(barabasi_sim)
+gsd.save_sim_data(barabasi_sim)
+
+reds_sim = gsd.full_sim_for_family('reds', rc.reds_graph, [1000, 0.1, 0.146, 1.0], 1, 1, 1e4, 1e3)
+gsa.full_analysis(reds_sim)
+gsd.save_sim_data(reds_sim)
+
+
+regular = gsd.load_sim_data('regular_params=1000-4-0_nets=5_sims=5.gsdata')
+erdos = gsd.load_sim_data('erdos_renyi_params=1000-4-1_nets=5_sims=5.gsdata')
+barabasi = gsd.load_sim_data('barabasi_albert_params=1000-2_nets=5_sims=5.gsdata')
+r_scale_free = gsd.load_sim_data('random_scale_free_params=1000-2_nets=5_sims=5.gsdata')
+
+sim_dict = {'Regular': regular, 'Erdos-Renyi': erdos, 'Barabasi-Albert': barabasi, 'Random scale-free': r_scale_free}
+
+mult_coop_by_b_plot(sim_dict)

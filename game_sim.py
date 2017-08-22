@@ -92,6 +92,8 @@ def strategy_update(network) :
 # return new strategy for a single node
 def new_strategy(network, node) :
   global b
+  if not network.node[node]['neighbors'] :
+    return network.node[node]['strategy']
   v = rd.choice(network.node[node]['neighbors'])
   if network.node[node]['payoff'] < network.node[v]['payoff'] :
     p = (network.node[v]['payoff'] - network.node[node]['payoff'])/(max(network.graph['degrees'][node], network.graph['degrees'][v])*b*100.0)

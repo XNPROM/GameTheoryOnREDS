@@ -6,9 +6,15 @@ import random as rd
 import networkx as nx
 import math as mt
 from scipy import stats
+from cycler import cycler
 import pickle
 import gs_data as gsd
 import operator
+import os
+
+global data_directory
+data_directory = os.getcwd() + "\\data\\"
+
 
 # pull the summary data into the simulation structure
 def full_analysis(simulation) :
@@ -21,27 +27,36 @@ def coop_ratio_by_degree_seq(simulation) :
   plt.suptitle('Co-operation ratios by degree for '+simulation['graph_name'])
   for c in range(n_steps/2) :
     ax = plt.subplot(2, 5, c+1)
-    coop_ratio_by_degree(simulation, 1+(c*2)/float(n_steps))
+    coop_by_degree(simulation, 1+(c*2)/float(n_steps))
   ax.legend(bbox_to_anchor=(1.05, 0), loc='lower left', borderaxespad=0.)
   plt.show()
   
-def coop_ratio_by_degree(simulation, b) :
+def coop_by_degree(simulation, b) :
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
   df = simulation['coop_degree'][b_index]
-  degrees = df.degree.value_counts().sort_index().index
-  totals = df.degree.value_counts().sort_index()
-  coops = df.loc[df['coop_rate'] > 0.5].degree.value_counts().sort_index()
-  defects = df.loc[df['coop_rate'] <= 0.5].degree.value_counts().sort_index()
-  c_ratio = coops.divide(totals)
-  d_ratio = defects.divide(totals)
-  p2 = plt.bar(degrees, d_ratio, bottom = c_ratio, color = '#adadad', label = 'defectors')
-  p1 = plt.bar(degrees, c_ratio, color = '#494949', label = 'cooperators')
-  plt.title('b = ' + str(b))
-  plt.xlabel('degree')
-  plt.ylabel('ratio of cooperators')
-  #plt.legend((p1[0], p2[0]), ('cooperators', 'defectors'), loc = 7)
-
+  
+  degree = df['degree'].to_dict()
+  coop = df.loc[df['coop_rate'] > 0.5]['degree'].to_dict()
+  defect = df.loc[df['coop_rate'] <= 0.5]['degree'].to_dict()
+  
+  max_degree = max(degree.values())
+  min_degree = min(degree.values())
+  index = range(min_degree, max_degree+1)
+  
+  totals = [degree.values().count(x) for x in index]
+  coop_counts = [coop.values().count(x) for x in index]
+  defect_counts = [defect.values().count(x) for x in index]
+  
+  c_ratio = map(lambda x, y : x/float(y) if y>0 else 0, coop_counts, totals)
+  d_ratio = map(lambda x, y : x/float(y) if y>0 else 0, defect_counts, totals)
+  
+  p2 = plt.bar(index, d_ratio, bottom = c_ratio, color = '#adadad', label = 'Defectors')
+  p1 = plt.bar(index, c_ratio, color = '#494949', label = 'Co-operators')
+  plt.title('Co-operation by Degree for '+simulation['graph_name']+': b=' + str(b), fontsize=20)
+  plt.xlabel('Degree', fontsize=14)
+  plt.ylabel('Co-operation Ratio', fontsize=14)
+    
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
   hist = simulation['coop_degree'][0].degree.value_counts().sort_index()
@@ -52,7 +67,8 @@ def degree_distribution_plot(simulation) :
   #plt.show()
 
 # plot average cooperation ratio by b-values
-def cooperation_by_b_plot(simulation) :
+def cooperation_by_b_plot(simulation, name=None) :
+  lab = simulation['graph_name'] if name==None else name
   n_steps = len(simulation['networks'][0]['average_cooperation_per_node'])
   n_networks = len(simulation['networks'])
   average_rate = [0. for x in range(n_steps)]
@@ -60,12 +76,12 @@ def cooperation_by_b_plot(simulation) :
     average_rate = map(lambda x,y : x+y, average_rate, simulation['networks'][g]['overall_average_cooperation'])
   average_rate = map(lambda x : x/float(n_networks), average_rate)
   b = [1 + i/float(n_steps) for i in range(n_steps)]
-  plt.plot(b, average_rate, 'b-')
-  plt.xlim(0.975, 2.025)
-  plt.ylim(0, 1)
-  plt.title('cooperation rate over b for '+simulation['graph_name'])
-  plt.xlabel('b')
-  plt.ylabel('cooperation ratio')
+  plt.plot(b, average_rate, linewidth=6.0, label=lab)
+  plt.xlim(1.0, 2.0)
+  plt.ylim(-0.05, 1.05)
+  #plt.title('Co-operation rate over b for '+simulation['graph_name'], fontsize=20)
+  plt.xlabel('b', fontsize=26, style='italic')
+  plt.ylabel('Co-operation ratio', fontsize=26)
   
 # uses data for each node of each network to construct a dataframe 
 # which compares degree to cooperation rate
@@ -135,3 +151,32 @@ def coop_rate_per_node(data) :
     averages = map(operator.add, averages, map(int, data[i]))
   averages = map(lambda z: z/float(samples), averages)
   return averages
+  
+#
+def draw_spatial_cooperation(sim, network_index, b) :
+  G = sim['networks'][network_index]['network']
+  avg_coop_per_node = sim['networks'][network_index]['average_cooperation_per_node']
+  coord = nx.get_node_attributes(G, 'pos')
+  n_steps = len(avg_coop_per_node)
+  b_index = int(round((b-1)*n_steps))
+  coops = avg_coop_per_node[b_index]
+  nx.draw_networkx_edges(G, pos = coord, alpha = 0.7)
+  nx.draw_networkx_nodes(G, pos = coord, node_color = coops, cmap=plt.get_cmap('plasma'), node_size = 30)
+  plt.xlim(-0.02, 1.02)
+  plt.ylim(-0.02, 1.02)
+  plt.show()
+  
+def mult_coop_by_b_plot(sim_dict) :
+  n = len(sim_dict)
+  my_dpi=96
+  fig = plt.figure(figsize=(1920/my_dpi, 1600/my_dpi), dpi=my_dpi)
+  ax = fig.add_subplot('111')
+  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) + cycler('linestyle', ['-', '--', '-.', ':']))
+  filename = 'coop_by_b'
+  for name, sim in sim_dict.iteritems() :
+    filename = filename + '_' + name
+    cooperation_by_b_plot(sim, name)
+  plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
+  ax.tick_params(labelsize=22)
+  plt.legend(loc=(0.6, 0.2), prop={'size': 30})
+  plt.savefig(data_directory+filename+'.png')
