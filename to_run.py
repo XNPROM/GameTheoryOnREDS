@@ -44,17 +44,44 @@ import gs_analysis as gsa
 import networkx as nx
 import matplotlib.pyplot as plt
 
-erdos_sim = gsd.full_sim_for_family('erdos_renyi', nx.watts_strogatz_graph, [1000, 10, 1], 1, 1, 1e4, 1e3)
+erdos_sim = gsd.full_sim_for_family('erdos_renyi', nx.watts_strogatz_graph, [1000, 10, 1], 5, 5, 1e4, 1e3)
 gsa.full_analysis(erdos_sim)
 gsd.save_sim_data(erdos_sim)
 
-barabasi_sim = gsd.full_sim_for_family('barabasi_albert', nx.barabasi_albert_graph, [1000, 5], 1, 1, 1e4, 1e3)
+barabasi_sim = gsd.full_sim_for_family('barabasi_albert', nx.barabasi_albert_graph, [1000, 5], 5, 5, 1e4, 1e3)
 gsa.full_analysis(barabasi_sim)
 gsd.save_sim_data(barabasi_sim)
 
-reds_sim = gsd.full_sim_for_family('reds', rc.reds_graph, [1000, 0.1, 0.146, 1.0], 1, 1, 1e4, 1e3)
+rsf_sim = gsd.full_sim_for_family('random_scale_free', gr.random_scale_free_graph, [1000, 5], 5, 5, 1e4, 1e3)
+gsa.full_analysis(rsf_sim)
+gsd.save_sim_data(rsf_sim)
+
+reds_sim = gsd.full_sim_for_family('reds', rc.reds_graph, [1000, 0.1, 0.146, 1.0], 5, 5, 1e4, 1e3)
 gsa.full_analysis(reds_sim)
 gsd.save_sim_data(reds_sim)
+
+rgg_sim = gsd.full_sim_for_family('rgg', rc.RGG_md_graph, [1000, 10], 5, 5, 1e4, 1e3)
+gsa.full_analysis(rgg_sim)
+gsd.save_sim_data(rgg_sim)
+
+sw_reds_sim = gsd.full_sim_for_family('smallworld_reds', rc.small_world_reds_graph, [1000, 0.1, 0.146, 1.0, 0.2], 5, 5, 1e4, 1e3)
+gsa.full_analysis(sw_reds_sim)
+gsd.save_sim_data(sw_reds_sim)
+
+regular_sim = gsd.full_sim_for_family('regular', nx.watts_strogatz_graph, [1000, 10, 0], 5, 5, 1e4, 1e3)
+gsa.full_analysis(regular_sim)
+gsd.save_sim_data(regular_sim)
+
+sim_dict1 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'Barabasi-Albert': barabasi_sim, 'Random scale-free': rsf_sim}
+
+sim_dict2 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'REDS': reds_sim, 'Random scale-free': rsf_sim}
+
+sim_dict3 = {'REDS': reds_sim, 'Small-world REDS': sw_reds_sim, 'RGG': rgg_sim}
+
+mult_coop_by_b_plot(sim_dict1)
+mult_coop_by_b_plot(sim_dict2)
+mult_coop_by_b_plot(sim_dict3)
+
 
 
 regular = gsd.load_sim_data('regular_params=1000-4-0_nets=5_sims=5.gsdata')
@@ -62,6 +89,6 @@ erdos = gsd.load_sim_data('erdos_renyi_params=1000-4-1_nets=5_sims=5.gsdata')
 barabasi = gsd.load_sim_data('barabasi_albert_params=1000-2_nets=5_sims=5.gsdata')
 r_scale_free = gsd.load_sim_data('random_scale_free_params=1000-2_nets=5_sims=5.gsdata')
 
-sim_dict = {'Regular': regular, 'Erdos-Renyi': erdos, 'Barabasi-Albert': barabasi, 'Random scale-free': r_scale_free}
+sim_dict1 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'Barabasi-Albert': barabasi_sim, 'Random scale-free': rsf_sim}
 
 mult_coop_by_b_plot(sim_dict)

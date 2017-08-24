@@ -43,16 +43,21 @@ def small_world_reds_graph(n, r, e, s, p, torus = True, suppress=True) :
   
       
 # return a networkx REDS graph with specified order, reach, energy and synergy
-def reds_graph(n, r, e, s, torus=True, suppress=True) :
+def reds_graph(n, r, e, s, torus=True, suppress=True, existing_nodes=None) :
   start = int(round(time.time()))
   G = nx.Graph()
   G.graph['reach'] = r
   G.graph['energy'] = e
   G.graph['synergy'] = s
-  G.add_nodes_from(range(n))
+  if existing_nodes == None :
+    G.add_nodes_from(range(n))
+    for i in range(len(G)) :
+      G.node[i]['pos'] = [rd.random() for k in range(2)]
+  else :
+    G.add_nodes_from(existing_nodes.nodes(data=True))
+    n = len(G)
   
   for i in range(len(G)) :
-    G.node[i]['pos'] = [rd.random() for k in range(2)]
     G.node[i]['in_range'] = {}
     G.node[i]['available'] = set()
   for i in range(n-1) :
@@ -260,30 +265,59 @@ def RGG_md_graph(n, mean_deg, torus=True) :
     
 
 # drawing the graph
-def draw_graph(G) :
+def draw_graph(G, fade_boundary_edges=True) :
   coord = nx.get_node_attributes(G, 'pos')
   degrees = nx.degree_centrality(G)
-  costs = [cost(G, i, j) for i,j in G.edges()]
-  nx.draw_networkx_edges(G, pos = coord, edge_color = costs, cmap=plt.get_cmap('gnuplot'), alpha = 0.7)
+  if fade_boundary_edges == True :
+    edge_dists={e: distance(G.node[e[0]], G.node[e[1]]) for e in G.edges()}
+    unit_edges = []
+    bound_edges = []
+    for e, d in edge_dists.iteritems() :
+      if d <= G.graph['reach'] :
+        unit_edges.append(e)
+      else :
+        bound_edges.append(e)
+    unit_costs = [cost(G, i, j) for i,j in unit_edges]
+    bound_costs = [cost(G, i, j) for i,j in bound_edges]
+    nx.draw_networkx_edges(G, pos = coord, edge_color = unit_costs, cmap=plt.get_cmap('gnuplot'), edgelist=unit_edges, alpha = 0.6)
+    nx.draw_networkx_edges(G, pos = coord, edge_color = bound_costs, cmap=plt.get_cmap('gnuplot'), edgelist=bound_edges, alpha = 0.1)
+  else :
+    costs = [cost(G, i, j) for i,j in G.edges()]
+    nx.draw_networkx_edges(G, pos = coord, edge_color = costs, cmap=plt.get_cmap('gnuplot'), alpha = 0.6)
   nx.draw_networkx_nodes(G, pos = coord, node_color = list(degrees.values()), cmap=plt.get_cmap('gnuplot'), node_size = 30)
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
-  plt.show()
+  plt.xticks([])
+  plt.yticks([])
 
 # draw communities
-def draw_communities(G) :
+def draw_communities(G, fade_boundary_edges=True) :
   coord = nx.get_node_attributes(G, 'pos')
   partition = community.best_partition(G)
-  size = float(len(set(partition.values())))
+  size = float(len(set(partition.values())))  
+  if fade_boundary_edges == True :
+    edge_dists={e: distance(G.node[e[0]], G.node[e[1]]) for e in G.edges()}
+    unit_edges = []
+    bound_edges = []
+    for e, d in edge_dists.iteritems() :
+      if d <= G.graph['reach'] :
+        unit_edges.append(e)
+      else :
+        bound_edges.append(e) 
   count = 0
   for com in set(partition.values()) :
     count = count + 1
     list_nodes = [nodes for nodes in partition.keys() if partition[nodes] == com]
-    nx.draw_networkx_nodes(G, pos = coord, nodelist = list_nodes, node_size = 30, node_color = [count/float(size) for x in list_nodes], cmap = plt.get_cmap('nipy_spectral'), vmin = 0, vmax = 1)
-  nx.draw_networkx_edges(G, coord, alpha = 0.5)
+    nx.draw_networkx_nodes(G, pos = coord, nodelist = list_nodes, node_size = 20, node_color = [count/float(size) for x in list_nodes], cmap = plt.get_cmap('nipy_spectral'), vmin = 0, vmax = 1)
+  if fade_boundary_edges == True :
+    nx.draw_networkx_edges(G, coord, edgelist=unit_edges, alpha = 0.5)
+    nx.draw_networkx_edges(G, coord, edgelist=bound_edges, alpha = 0.05)
+  else :
+    nx.draw_networkx_edges(G, coord, alpha = 0.3)
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
-  plt.show()
+  plt.xticks([])
+  plt.yticks([])
  
 # draw communities non-spatially
 def draw_communities_spring(G) :
@@ -294,12 +328,30 @@ def draw_communities_spring(G) :
   for com in set(partition.values()) :
     count = count + 1
     list_nodes = [nodes for nodes in partition.keys() if partition[nodes] == com]
-    nx.draw_networkx_nodes(G, pos = coord, nodelist = list_nodes, node_size = 30, node_color = [count/float(size) for x in list_nodes], cmap = plt.get_cmap('nipy_spectral'), vmin = 0, vmax = 1)
+    nx.draw_networkx_nodes(G, pos = coord, nodelist = list_nodes, node_size = 20, node_color = [count/float(size) for x in list_nodes], cmap = plt.get_cmap('nipy_spectral'), vmin = 0, vmax = 1)
   nx.draw_networkx_edges(G, coord, alpha = 0.5)
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
   plt.show()
 
+def draw_community_comparison(G, H) :
+  my_dpi = 96
+  fig = plt.figure(figsize=(1100/my_dpi, 1200/my_dpi), dpi = my_dpi)
+  fig.add_subplot('221')
+  draw_communities(G)
+  plt.ylabel('High-Synergy', fontsize=21, weight='bold')
+  fig.add_subplot('222')
+  draw_graph(G)
+  fig.add_subplot('223')
+  draw_communities(H)
+  plt.ylabel('Low-Synergy', fontsize=21, weight='bold')
+  plt.xlabel('Communities', fontsize=21, weight='bold')
+  fig.add_subplot('224')
+  draw_graph(H)
+  plt.xlabel('Degree', fontsize=21, weight='bold')
+  plt.savefig(data_directory+'community_comp.png')
+  
+  
 # plot the degree distribution of a network  
 def plot_degree_distribution(G) :
   degrees = G.degree()
@@ -439,21 +491,29 @@ def heatmaps(graph_df, dir) :
 def heatmaps_fig(graph_df, dir) :
   tags = {'mean_degree': 'Mean Degree', 'clustering': 'Clustering Coefficient', 'assortativity': 'Assortativity'}
   my_dpi = 96
-  fig = plt.figure(figsize = (1920/my_dpi, 720/my_dpi), dpi = my_dpi)
+  fig = plt.figure(figsize = (1100/my_dpi, 380/my_dpi), dpi = my_dpi)
   i = 0
   for k, v in tags.iteritems() :
     print(k)
     i = i+1
-    fig.add_subplot(1, 3, i)
+    ax=fig.add_subplot(1, 3, i)
     df = graph_df.applymap(lambda p : p.graph[k]).T.iloc[::-1]
     df.index = map(lambda s : s[:4]+'..' if len(s) > 4 else s, df.index)
-    sns.heatmap(df, cmap = plt.get_cmap('gnuplot'))
-    plt.title(v, fontsize=20)
+    x_ticks=np.arange(0.0, 1.25, 0.25)
+    sns.heatmap(df, cmap = plt.get_cmap('gnuplot'), xticklabels=x_ticks)
+    plt.title(v, fontsize=16, weight='bold')
     plt.tick_params(labelsize=12)
-    plt.xlabel('Synergy', fontsize=16)
-    plt.ylabel('Energy', fontsize=16)
+    ax.set_xticks(x_ticks*ax.get_xlim()[1])
+
+    #yloc = plt.MaxNLocator(5)
+    #ax.xaxis.set_ticks(np.arange(0.0, 1.25, 0.25))
+    #ax.xaxis.set_major_locator(yloc)
+    #plt.locator_params(axis='x', nbins=5)
+    plt.xlabel('Synergy', fontsize=12, weight='bold')
+    plt.ylabel('Energy', fontsize=12, weight='bold')
     plt.yticks(rotation=0)
-  plt.savefig(data_directory+dir+'\\heatmaps.png', dpi = my_dpi)
+  plt.tight_layout()
+  plt.savefig(data_directory+dir+'\\heatmaps_small.png', dpi = my_dpi)
 
 
 def mean_deg_heatmap(md_prop) :

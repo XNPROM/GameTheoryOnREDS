@@ -53,9 +53,12 @@ def coop_by_degree(simulation, b) :
   
   p2 = plt.bar(index, d_ratio, bottom = c_ratio, color = '#adadad', label = 'Defectors')
   p1 = plt.bar(index, c_ratio, color = '#494949', label = 'Co-operators')
-  plt.title('Co-operation by Degree for '+simulation['graph_name']+': b=' + str(b), fontsize=20)
-  plt.xlabel('Degree', fontsize=14)
-  plt.ylabel('Co-operation Ratio', fontsize=14)
+  #plt.title('Co-operation by Degree for '+simulation['graph_name']+': b=' + str(b), fontsize=20)
+  plt.legend()
+  plt.tick_params(labelsize=14)
+  plt.xlim(min_degree, max_degree)
+  plt.xlabel('Degree', fontsize=17, weight='bold')
+  plt.ylabel('Co-operation Ratio', fontsize=17, weight='bold')
     
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
@@ -80,8 +83,8 @@ def cooperation_by_b_plot(simulation, name=None) :
   plt.xlim(1.0, 2.0)
   plt.ylim(-0.05, 1.05)
   #plt.title('Co-operation rate over b for '+simulation['graph_name'], fontsize=20)
-  plt.xlabel('b', fontsize=26, style='italic')
-  plt.ylabel('Co-operation ratio', fontsize=26)
+  plt.xlabel('b', fontsize=17, style='italic', weight='bold')
+  plt.ylabel('Co-operation Ratio', fontsize=17, weight='bold')
   
 # uses data for each node of each network to construct a dataframe 
 # which compares degree to cooperation rate
@@ -169,14 +172,15 @@ def draw_spatial_cooperation(sim, network_index, b) :
 def mult_coop_by_b_plot(sim_dict) :
   n = len(sim_dict)
   my_dpi=96
-  fig = plt.figure(figsize=(1920/my_dpi, 1600/my_dpi), dpi=my_dpi)
+  fig = plt.figure(figsize=(950/my_dpi, 950/my_dpi), dpi=my_dpi)
   ax = fig.add_subplot('111')
   ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) + cycler('linestyle', ['-', '--', '-.', ':']))
   filename = 'coop_by_b'
   for name, sim in sim_dict.iteritems() :
     filename = filename + '_' + name
     cooperation_by_b_plot(sim, name)
-  plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
-  ax.tick_params(labelsize=22)
-  plt.legend(loc=(0.6, 0.2), prop={'size': 30})
-  plt.savefig(data_directory+filename+'.png')
+  #plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
+  ax.tick_params(labelsize=14)
+  plt.legend(loc=(0.62, 0.82), prop={'size': 16})
+  plt.tight_layout()
+  plt.savefig(data_directory+filename+'_k=10_small.png')
