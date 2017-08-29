@@ -11,6 +11,7 @@ import pickle
 import gs_data as gsd
 import operator
 import os
+from sklearn.decomposition import PCA
 
 global data_directory
 data_directory = os.getcwd() + "\\data\\"
@@ -21,17 +22,20 @@ def full_analysis(simulation) :
   per_network_cooperation_rate(simulation)
   cooperation_to_degree(simulation)
 
-def coop_ratio_by_degree_seq(simulation) :
-  n_steps = len(simulation['coop_degree'])
-  plt.figure(1)
-  plt.suptitle('Co-operation ratios by degree for '+simulation['graph_name'])
-  for c in range(n_steps/2) :
-    ax = plt.subplot(2, 5, c+1)
-    coop_by_degree(simulation, 1+(c*2)/float(n_steps))
-  ax.legend(bbox_to_anchor=(1.05, 0), loc='lower left', borderaxespad=0.)
-  plt.show()
+def coop_by_degree_list(simulation, b_list) :
+  my_dpi = 96
+  l = len(b_list)
+  fig = plt.figure(figsize=(1100/my_dpi, l*300/my_dpi), dpi=my_dpi)
+  for i in range(l) :
+    fig.add_subplot(l, 1, i+1)
+    coop_by_degree(simulation, b_list[i])
+    plt.ylabel('b = '+str(b_list[i]), fontsize=17, weight='bold')
+    plt.xlabel('')
+  plt.xlabel('Degree', fontsize=17, weight='bold')
+  plt.tight_layout()
   
 def coop_by_degree(simulation, b) :
+  my_dpi = 96
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
   df = simulation['coop_degree'][b_index]
@@ -51,12 +55,14 @@ def coop_by_degree(simulation, b) :
   c_ratio = map(lambda x, y : x/float(y) if y>0 else 0, coop_counts, totals)
   d_ratio = map(lambda x, y : x/float(y) if y>0 else 0, defect_counts, totals)
   
+  #fig = plt.figure(figsize=(1100/my_dpi, 400/my_dpi), dpi=my_dpi)
+  
   p2 = plt.bar(index, d_ratio, bottom = c_ratio, color = '#adadad', label = 'Defectors')
   p1 = plt.bar(index, c_ratio, color = '#494949', label = 'Co-operators')
   #plt.title('Co-operation by Degree for '+simulation['graph_name']+': b=' + str(b), fontsize=20)
   plt.legend()
   plt.tick_params(labelsize=14)
-  plt.xlim(min_degree, max_degree)
+  plt.xlim(min_degree-1, max_degree+1)
   plt.xlabel('Degree', fontsize=17, weight='bold')
   plt.ylabel('Co-operation Ratio', fontsize=17, weight='bold')
     
@@ -69,6 +75,17 @@ def degree_distribution_plot(simulation) :
   plt.title('degree distribution of '+simulation['graph_name'])
   #plt.show()
 
+# Total ratio of cooperation
+def overall_coop_measure(simulation) :
+  n_steps = len(simulation['networks'][0]['average_cooperation_per_node'])
+  n_networks = len(simulation['networks'])
+  average_rate = [0. for x in range(n_steps)]
+  for g in range(n_networks) :
+    average_rate = map(lambda x,y : x+y, average_rate, simulation['networks'][g]['overall_average_cooperation'])
+  average_rate = map(lambda x : x/float(n_networks), average_rate)
+  overall = sum(average_rate)/(len(average_rate))
+  return overall
+  
 # plot average cooperation ratio by b-values
 def cooperation_by_b_plot(simulation, name=None) :
   lab = simulation['graph_name'] if name==None else name
@@ -155,7 +172,7 @@ def coop_rate_per_node(data) :
   averages = map(lambda z: z/float(samples), averages)
   return averages
   
-#
+# draw cooperation by node spatially (only pass spatial networks)
 def draw_spatial_cooperation(sim, network_index, b) :
   G = sim['networks'][network_index]['network']
   avg_coop_per_node = sim['networks'][network_index]['average_cooperation_per_node']
@@ -169,6 +186,7 @@ def draw_spatial_cooperation(sim, network_index, b) :
   plt.ylim(-0.02, 1.02)
   plt.show()
   
+# Plot multiple cooperation by b graphs on the same axis
 def mult_coop_by_b_plot(sim_dict) :
   n = len(sim_dict)
   my_dpi=96
@@ -184,3 +202,34 @@ def mult_coop_by_b_plot(sim_dict) :
   plt.legend(loc=(0.62, 0.82), prop={'size': 16})
   plt.tight_layout()
   plt.savefig(data_directory+filename+'_k=10_small.png')
+  
+# PCA on basic propeties
+def graph_prop_pca(csv) :
+  props = pd.read_csv(data_directory+csv, index_col = 0)
+  props = props.T
+  del [props['energy'], props['synergy'], props['reach']]
+  props = props.T
+  props_norm = norm_cols(props)
+  pca = PCA()
+  pca.fit(props_norm)
+  pca_df = pd.DataFrame(pca.components_.T, columns = ['component_'+str(k) for k in range(len(pca.components_))], index = props_norm.columns)
+  pca_df = pca_df.T
+  pca_df['explained_var_ratio'] = pca.explained_variance_ratio_
+  return pca_df.T
+
+
+#
+def mean(l) :
+  return sum(l)/float(len(l))
+
+def var(l) :
+  m = mean(l)
+  s = sum(map(lambda x: (x-m)**2, l))
+  return s/float(len(l)-1)
+
+def sd(l) :
+  return mt.sqrt(var(l))
+  
+def norm_cols(df) :
+  normed = props.apply(lambda col : map(lambda x : (x-mean(col))/sd(col), col))
+  return normed

@@ -72,6 +72,24 @@ regular_sim = gsd.full_sim_for_family('regular', nx.watts_strogatz_graph, [1000,
 gsa.full_analysis(regular_sim)
 gsd.save_sim_data(regular_sim)
 
+comm_rand_reds_sim = gsd.full_sim_for_family('comm_rand_reds', rc.small_world_reds_graph, [1000, 0.1, 0.146, 1.0, 1.0], 5, 5, 1e4, 1e3)
+gsa.full_analysis(comm_rand_reds_sim)
+gsd.save_sim_data(comm_rand_reds_sim)
+
+
+comm_reds_sim = gsd.full_sim_for_family('comm_reds', rc.reds_graph, [1000, 0.1, 0.146, 1.0], 5, 5, 1e4, 1e3, comm_init=True)
+gsa.full_analysis(comm_reds_sim)
+gsd.save_sim_data(comm_reds_sim)
+
+
+comm_erdos_sim = gsd.full_sim_for_family('comm_erdos_renyi', nx.watts_strogatz_graph, [1000, 10, 1], 5, 5, 1e4, 1e3, comm_init=True)
+gsa.full_analysis(comm_erdos_sim)
+gsd.save_sim_data(comm_erdos_sim)
+
+comm_barabasi_sim = gsd.full_sim_for_family('comm_barabasi_albert', nx.barabasi_albert_graph, [1000, 5], 5, 5, 1e4, 1e3, comm_init=True)
+gsa.full_analysis(comm_barabasi_sim)
+gsd.save_sim_data(comm_barabasi_sim)
+
 sim_dict1 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'Barabasi-Albert': barabasi_sim, 'Random scale-free': rsf_sim}
 
 sim_dict2 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'REDS': reds_sim, 'Random scale-free': rsf_sim}
@@ -84,11 +102,38 @@ mult_coop_by_b_plot(sim_dict3)
 
 
 
-regular = gsd.load_sim_data('regular_params=1000-4-0_nets=5_sims=5.gsdata')
-erdos = gsd.load_sim_data('erdos_renyi_params=1000-4-1_nets=5_sims=5.gsdata')
-barabasi = gsd.load_sim_data('barabasi_albert_params=1000-2_nets=5_sims=5.gsdata')
-r_scale_free = gsd.load_sim_data('random_scale_free_params=1000-2_nets=5_sims=5.gsdata')
+regular = gsd.load_sim_data('regular_params=1000-10-0_nets=5_sims=5.gsdata')
+erdos = gsd.load_sim_data('erdos_renyi_params=1000-10-1_nets=5_sims=5.gsdata')
+barabasi = gsd.load_sim_data('barabasi_albert_params=1000-5_nets=5_sims=5.gsdata')
+r_scale_free = gsd.load_sim_data('random_scale_free_params=1000-5_nets=5_sims=5.gsdata')
+reds = gsd.load_sim_data('reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
+sw_reds = gsd.load_sim_data('smallworld_reds_params=1000-0.1-0.146-1.0-0.2_nets=5_sims=5.gsdata')
+rgg = gsd.load_sim_data('rgg_params=1000-10_nets=5_sims=5.gsdata')
 
-sim_dict1 = {'Regular': regular_sim, 'Erdos-Renyi': erdos_sim, 'Barabasi-Albert': barabasi_sim, 'Random scale-free': rsf_sim}
+red_sim = gsd.load_sim_data('reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
+comm_reds_sim = gsd.load_sim_data('comm_reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
 
-mult_coop_by_b_plot(sim_dict)
+
+sim_dict_redsold = {'REDS': reds, 'Erdos-Renyi': erdos, 'Barabasi-Albert': barabasi, 'Regular': regular}
+
+sim_dict = {'Standard': reds_sim, 'Random': rand_reds_sim, 'Community-Random': comm_rand_reds_sim, 'Community': comm_reds_sim}
+
+def mult_coop_by_b_plot_poster(sim_dict) :
+  n = len(sim_dict)
+  my_dpi=96
+  fig = plt.figure(figsize=(10.1, 8.44), dpi=my_dpi)
+  ax = fig.add_subplot('111')
+  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) + cycler('linestyle', ['-', '--', '-.', ':']))
+  filename = 'coop_by_b'
+  for name, sim in sim_dict.iteritems() :
+    filename = filename + '_' + name
+    gsa.cooperation_by_b_plot(sim, name)
+  #plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
+  ax.tick_params(labelsize=14)
+  plt.xlabel('Temptation to Defect', fontsize=17, weight='bold')
+  plt.legend(loc=(0.7, 0.82), prop={'size': 16})
+  plt.tight_layout()
+  plt.savefig(data_directory+'POSTER_'+filename+'_k=10_small.png', dpi=my_dpi)
+
+
+

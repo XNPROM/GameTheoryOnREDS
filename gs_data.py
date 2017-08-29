@@ -48,7 +48,7 @@ def sec_to_string(seconds) :
 
 # run a full simulation for with specified (networkx) graph constructor
 # and specified parameters
-def full_sim_for_family(graph_name, graph_constructor, params, n_networks=5, sims_per_network=5, burn_in=1e4, n_samples=1e3) :
+def full_sim_for_family(graph_name, graph_constructor, params, n_networks=5, sims_per_network=5, burn_in=1e4, n_samples=1e3, comm_init=False) :
   simulation = {}
   simulation['graph_name'] = graph_name
   simulation['params'] = params
@@ -72,7 +72,7 @@ def full_sim_for_family(graph_name, graph_constructor, params, n_networks=5, sim
         remaining = 0
       p_message('elapsed time: ' + sec_to_string(elapsed) + ' |   remaining: ' + sec_to_string(remaining))
       p_message('network '+str(i+1)+' of '+str(n_networks)+': sim '+str(j+1)+' of '+str(sims_per_network)+': running')
-      network_data['sims'][j] = gs.get_simulation_data(network_data['network'], burn_in, n_samples)
+      network_data['sims'][j] = gs.get_simulation_data(network_data['network'], burn_in, n_samples, 20, comm_init)
   elapsed = int(round(time.time())) - start
   p_message('total time taken: ' + sec_to_string(elapsed))
   return simulation

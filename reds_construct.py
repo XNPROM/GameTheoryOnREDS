@@ -335,22 +335,83 @@ def draw_communities_spring(G) :
   plt.show()
 
 def draw_community_comparison(G, H) :
-  my_dpi = 96
-  fig = plt.figure(figsize=(1100/my_dpi, 1200/my_dpi), dpi = my_dpi)
+  my_dpi = 400
+  fig = plt.figure(figsize=(8.425, 9.45), dpi = my_dpi)
   fig.add_subplot('221')
+  plt.axis('scaled')
   draw_communities(G)
   plt.ylabel('High-Synergy', fontsize=21, weight='bold')
   fig.add_subplot('222')
+  plt.axis('scaled')
   draw_graph(G)
   fig.add_subplot('223')
+  plt.axis('scaled')
   draw_communities(H)
   plt.ylabel('Low-Synergy', fontsize=21, weight='bold')
   plt.xlabel('Communities', fontsize=21, weight='bold')
   fig.add_subplot('224')
+  plt.axis('scaled')
   draw_graph(H)
   plt.xlabel('Degree', fontsize=21, weight='bold')
-  plt.savefig(data_directory+'community_comp.png')
-  
+  plt.tight_layout()
+  plt.savefig(data_directory+'community_comp_large.png', dpi = my_dpi)
+ 
+def draw_strategy(G, sim_data, step, fade_boundary_edges=True) :
+  coord = nx.get_node_attributes(G, 'pos')
+  strats = {k: sim_data[step][k] for k in range(len(G))}
+  coops = []
+  defects = []
+  for k, v in strats.iteritems() :
+    if v is True :
+      coops.append(k)
+    else :
+      defects.append(k)
+  nx.draw_networkx_nodes(G, pos = coord, node_color = 'b', nodelist = coops, node_size = 30, label = 'C')
+  nx.draw_networkx_nodes(G, pos = coord, node_color = 'r', nodelist = defects, node_size = 30, label = 'D')
+  plt.legend(prop={'size': 12})
+ 
+  if fade_boundary_edges == True :
+    edge_dists={e: distance(G.node[e[0]], G.node[e[1]]) 
+                  for e in G.edges()}
+    unit_edges = []
+    bound_edges = []
+    for e, d in edge_dists.iteritems() :
+      if d <= G.graph['reach'] :
+        unit_edges.append(e)
+      else :
+        bound_edges.append(e)
+    nx.draw_networkx_edges(G, pos = coord, edgelist=unit_edges, alpha = 0.6)
+    nx.draw_networkx_edges(G, pos = coord, edgelist=bound_edges, alpha = 0.1)
+  else :
+    nx.draw_networkx_edges(G, pos = coord, alpha = 0.6)
+      
+  plt.xlim(-0.02, 1.02)
+  plt.ylim(-0.02, 1.02)
+  plt.xticks([])
+  plt.yticks([])
+
+def draw_strategies(G, sim_data, time_steps) :
+  my_dpi = 96
+  l = len(time_steps)
+  fig = plt.figure(figsize=(1100/my_dpi, 1200/(l*my_dpi)), dpi=my_dpi)
+  for i in range(l) :
+    fig.add_subplot(1, l, i+1)
+    draw_strategy(G, sim_data, time_steps[i])
+    plt.xlabel('t = '+str(time_steps[i]), fontsize=17, weight='bold')
+  plt.tight_layout()
+
+# draw the graphs communities and the strategies at a particular 
+# timestep in recorded simulation data
+def draw_community_strategy(G, sim_data, step) :
+  my_dpi = 96
+  fig = plt.figure(figsize=(1100/my_dpi, 600/my_dpi), dpi=my_dpi)
+  fig.add_subplot('121')
+  draw_communities(G)
+  plt.xlabel('Communities', fontsize=21, weight='bold')
+  fig.add_subplot('122')
+  draw_strategy(G, sim_data, step)
+  plt.xlabel('Strategies after '+str(step)+' steps', fontsize=21, weight='bold')
+
   
 # plot the degree distribution of a network  
 def plot_degree_distribution(G) :
@@ -504,11 +565,6 @@ def heatmaps_fig(graph_df, dir) :
     plt.title(v, fontsize=16, weight='bold')
     plt.tick_params(labelsize=12)
     ax.set_xticks(x_ticks*ax.get_xlim()[1])
-
-    #yloc = plt.MaxNLocator(5)
-    #ax.xaxis.set_ticks(np.arange(0.0, 1.25, 0.25))
-    #ax.xaxis.set_major_locator(yloc)
-    #plt.locator_params(axis='x', nbins=5)
     plt.xlabel('Synergy', fontsize=12, weight='bold')
     plt.ylabel('Energy', fontsize=12, weight='bold')
     plt.yticks(rotation=0)

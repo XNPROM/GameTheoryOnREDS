@@ -27,47 +27,66 @@ import math as mt
 from scipy import stats
 from bitarray import bitarray
 import pickle
+import community
 
 global b, N, payoff
 
 rd.seed(3)
 
 # get data for specified network over full range of b values
-def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20) :
+def get_simulation_data(network, n_mix = 1e4, n_data = 1e3, n_steps = 20, comm_init=False) :
   data = [None for x in range(n_steps)]
   for i in range(n_steps) :
     print(str(i/float(n_steps)*100)+'%')
-    data[i] = full_sim(network, 1+i/float(n_steps), n_mix, n_data)
+    data[i] = full_sim(network, 1+i/float(n_steps), n_mix, n_data, comm_init)
   return data
 
-def full_sim(network, B, n_mix=int(1e4), n_data = int(1e3)) :
-  init(network)
+def full_sim(network, B, n_mix=int(1e4), n_data = int(1e3), comm_init=False) :
+  initialise = init if comm_init is False else community_init
+  initialise(network)
   data = sim(network, B, int(n_mix), int(n_data))
   return data
   
 # initialise payoff and strategy fields
 def init(network) :
   global N 
-  N = len(network)
+  n = N = len(network)
   cnt = 0
   network.graph['degrees'] = [network.degree(node) for node in network.nodes()]
-  for i in range(N) :
+  for i in range(n) :
     network.node[i]['payoff'] = 0
     network.node[i]['strategy'] = False
     network.node[i]['neighbors'] = network.neighbors(i)
-  while cnt < N/2 :
-    s = mt.floor(rd.random()*N)
+  while cnt < n/2 :
+    s = mt.floor(rd.random()*n)
     if not network.node[s]['strategy'] :
       network.node[s]['strategy'] = True
       cnt = cnt + 1
 
+# initialise payoff entries, and distribute stategies among 
+# communities
+def community_init(network) :
+  n = len(network)
+  partition = community.best_partition(network)
+  community_index = sorted(set(partition.values()))
+  num_communities = max(community_index)+1
+  comm_strat = [True if k < num_communities/2 else False for k in community_index]
+  rd.shuffle(comm_strat)
+  network.graph['degrees'] =  [network.degree(node) 
+                                for node in network.nodes()]
+  for i in range(n) :
+    network.node[i]['payoff'] = 0
+    network.node[i]['strategy'] = comm_strat[partition[i]]
+    network.node[i]['neighbors'] = network.neighbors(i)
+      
 # run simulation and return data from final 1e3 iterations
 def sim(network, B, n_mix = int(1e4), n_data = int(1e3)) :
   global b
   global payoff
   b = B
   payoff = [[0, int(b*100.0)],[0, 100]]
-  data = [bitarray([False for x in network.nodes()]) for y in range(int(n_data))]
+  data = [bitarray([False for x in network.nodes()]) 
+                      for y in range(int(n_data))]
   for i in range(n_mix) :
     run_network_game(network)
     strategy_update(network)  
@@ -190,7 +209,7 @@ def plot_degree_distribution(network) :
   plt.title('degree distribution')
   plt.show()
 
-# returns the average degree distribution  
+# returns the average degree  
 def average_degree(network) :
   degrees = network.degree()
   return sum(degrees.values())/float(len(degrees))
