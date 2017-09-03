@@ -110,13 +110,75 @@ reds = gsd.load_sim_data('reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
 sw_reds = gsd.load_sim_data('smallworld_reds_params=1000-0.1-0.146-1.0-0.2_nets=5_sims=5.gsdata')
 rgg = gsd.load_sim_data('rgg_params=1000-10_nets=5_sims=5.gsdata')
 
-red_sim = gsd.load_sim_data('reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
+reds_sim = gsd.load_sim_data('reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
 comm_reds_sim = gsd.load_sim_data('comm_reds_params=1000-0.1-0.146-1.0_nets=5_sims=5.gsdata')
-
+rand_reds_sim = gsd.load_sim_data('rand_reds_params=1000-0.1-0.146-1.0-1.0_nets=5_sims=5.gsdata')
+comm_rand_reds_sim = gsd.load_sim_data('comm_rand_reds_params=1000-0.1-0.146-1.0-1.0_nets=5_sims=5.gsdata')
 
 sim_dict_redsold = {'REDS': reds, 'Erdos-Renyi': erdos, 'Barabasi-Albert': barabasi, 'Regular': regular}
 
 sim_dict = {'Standard': reds_sim, 'Random': rand_reds_sim, 'Community-Random': comm_rand_reds_sim, 'Community': comm_reds_sim}
+
+def reds_e_range(n, r, s, num, max_e, min_e=0) :
+  step = (max_e-min_e)/float(num)
+  e_list = np.arange(min_e, max_e+step, step)
+  return [reds_graph(n, r, e, s) for e in e_list]
+  
+def plot_path_lengths(e_range) :
+  lengths = [e.graph['char_path_length'] for e in e_range]
+  energies = [e.graph['energy'] for e in e_range]
+  my_dpi = 300
+  fig = plt.figure(figsize=(6, 4), dpi = my_dpi)
+  plt.plot(energies, lengths, 'r-', linewidth=6.0)
+  plt.xlabel('Energy', fontsize=17, style='italic', weight='bold')
+  plt.ylabel('Char. Path Length', fontsize=17, weight='bold')
+  plt.tight_layout()
+  plt.savefig(data_directory+'char_paths_narrow.png', dpi = my_dpi)
+
+def plot_connected(e_range) :
+  energies = [e.graph['energy'] for e in e_range]
+  connected = []
+  disconnected = []
+  for i in range(len(e_range)) :
+    if e_range[i].graph['char_path_length']>0 :
+      connected.append(energies[i])
+    else :
+      disconnected.append(energies[i])
+  my_dpi = 300
+  m_size = 10
+  fig = plt.figure(figsize=(6, 1.75), dpi = my_dpi)
+  ax = plt.axes(frameon=False)
+  ax.axes.get_yaxis().set_visible(False)
+  plt.plot(connected, np.zeros_like(connected), 'bx', label='Connected', markersize=m_size)
+  plt.plot(disconnected, np.zeros_like(disconnected), 'ro', label='Disconnected', markersize=m_size)
+  plt.xlabel('Energy', fontsize=17, style='italic', weight='bold')
+  plt.yticks([])
+  plt.ylim(-0.05, 0.2)
+  xmin = min(energies)
+  xmax = max(energies)
+  ymin, ymax = ax.get_yaxis().get_view_interval()
+  ax.add_artist(Line2D((xmin, xmax), (ymin, ymin), color='black', linewidth=2))
+  plt.legend()
+  plt.tight_layout()
+  plt.savefig(data_directory+'is_connected_narrow.png', dpi = my_dpi)
+  
+def svm(e_range, l=0, steps=80) :
+  energies = [e.graph['energy'] for e in e_range]
+  e_max = max(energies)
+  e_min = min(energies)
+  s = 10/float(e_max-e_min)
+  step = (e_max-e_min)/steps
+  D = [{'y' : 1 if e.graph['char_path_length']>0 else -1, 'e': e.graph['energy']} for e in e_range]
+  W = np.arange(e_min, e_max+step, step)
+  loss = [svm_loss(D, w, s, l) for w in W]
+  return {'w' : W, 'loss' : loss}
+  
+def score(d, w, s) :
+  return s*d['y']*(d['e']-w)
+
+def svm_loss(D, w, s, l) :
+  hinges = [max(0, 1-score(d, w, s)) for d in D]
+  return (sum(hinges)/len(hinges)+l*s)
 
 def mult_coop_by_b_plot_poster(sim_dict) :
   n = len(sim_dict)
@@ -135,5 +197,18 @@ def mult_coop_by_b_plot_poster(sim_dict) :
   plt.tight_layout()
   plt.savefig(data_directory+'POSTER_'+filename+'_k=10_small.png', dpi=my_dpi)
 
+  
 
+dict = {'barabasi-albert': [nx.barabasi_albert_graph(1000, 5) for x in range(10)], 'erdos-renyi': [nx.watts_strogatz_graph(1000, 10, 1) for x in range(10)], 'reds': [reds_graph(1000, 0.1, 0.146, 1.0) for x in range(10)]}
+for k, v in dict.iteritems() :
+  map(social_properties, v)
 
+  
+net_dict = {}
+  
+for k, s in sim_dict.iteritems() :
+  net_dict[k] = []
+  for m in s['networks'] :
+    social_properties(m['network'])
+    net_dict[k].append(m['network'])
+  

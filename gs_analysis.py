@@ -96,7 +96,7 @@ def cooperation_by_b_plot(simulation, name=None) :
     average_rate = map(lambda x,y : x+y, average_rate, simulation['networks'][g]['overall_average_cooperation'])
   average_rate = map(lambda x : x/float(n_networks), average_rate)
   b = [1 + i/float(n_steps) for i in range(n_steps)]
-  plt.plot(b, average_rate, linewidth=6.0, label=lab)
+  plt.plot(b, average_rate, linewidth=2.0, label=lab)
   plt.xlim(1.0, 2.0)
   plt.ylim(-0.05, 1.05)
   #plt.title('Co-operation rate over b for '+simulation['graph_name'], fontsize=20)
@@ -189,19 +189,19 @@ def draw_spatial_cooperation(sim, network_index, b) :
 # Plot multiple cooperation by b graphs on the same axis
 def mult_coop_by_b_plot(sim_dict) :
   n = len(sim_dict)
-  my_dpi=96
-  fig = plt.figure(figsize=(950/my_dpi, 950/my_dpi), dpi=my_dpi)
+  my_dpi=300
+  fig = plt.figure(figsize=(6, 4), dpi=my_dpi)
   ax = fig.add_subplot('111')
-  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) + cycler('linestyle', ['-', '--', '-.', ':']))
+  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'c', 'm', 'y']) + cycler('linestyle', ['-', '--', '-.', ':', '-', '--']))
   filename = 'coop_by_b'
   for name, sim in sim_dict.iteritems() :
     filename = filename + '_' + name
     cooperation_by_b_plot(sim, name)
   #plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
   ax.tick_params(labelsize=14)
-  plt.legend(loc=(0.62, 0.82), prop={'size': 16})
+  plt.legend(loc=(0.75, 0.65), prop={'size': 7})
   plt.tight_layout()
-  plt.savefig(data_directory+filename+'_k=10_small.png')
+  plt.savefig(data_directory+filename+'_k=10_print.png')
   
 # PCA on basic propeties
 def graph_prop_pca(csv) :
@@ -233,3 +233,28 @@ def sd(l) :
 def norm_cols(df) :
   normed = props.apply(lambda col : map(lambda x : (x-mean(col))/sd(col), col))
   return normed
+  
+  
+# Analysis of small-world properties vs ER and BA
+def sw_plot(net_df) :
+  props = {'assortativity': 'Assortativity', 'char_path_length': 'Char. Path', 'clustering': 'Clustering', 'heterogeneity': 'Heterogeneity', 'overall_coop': 'Overall Co-op.'}
+  ER = {'assortativity': -0.056, 'char_path_length': 3.269, 'clustering': 0.009, 'heterogeneity': 0.014, 'overall_coop': 0.255}
+  BA = {'assortativity': -0.055, 'char_path_length': 2.980, 'clustering': 0.040, 'heterogeneity': 0.138, 'overall_coop': 0.810}
+  keys = sorted(props.keys())
+  my_dpi = 300
+  fig = plt.figure(figsize=(7, 5), dpi = my_dpi)
+  cnt = 0
+  for k in keys :
+    cnt = cnt+1
+    fig.add_subplot(2, 3, cnt)
+    series = net_df.loc[k]
+    plt.plot(series.index, series.values, 'k-', linewidth=2.5, label='REDS')
+    plt.plot(series.index, [ER[k] for x in series.index], 'c--', linewidth=2, label = 'Erdos-Renyi')
+    plt.plot(series.index, [BA[k] for x in series.index], 'm--', linewidth=2, label = 'Barabasi-Albert')
+    plt.xlim(min(series.index), max(series.index))
+    plt.ylabel(props[k], fontsize=12, fontweight='bold')
+  plt.legend(loc=(1.3, 0.45))
+  plt.tight_layout()
+  plt.savefig(data_directory+'sw_plot.png', dpi= my_dpi)
+    
+  

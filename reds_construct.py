@@ -194,6 +194,7 @@ def social_properties(G) :
   G.graph['mode_degree'] = max(set(degrees), key = degrees.count)
   G.graph['median_degree'] = stat.median(degrees)
   G.graph['spectral_gap'] = pr_spectral_gap(G)
+  G.graph['heterogeneity'] = estrada_heterogeneity(G)
 
 # compute the spectral gap of the graph  
 def pr_spectral_gap(G) :
@@ -203,7 +204,15 @@ def pr_spectral_gap(G) :
   eig = scipy.sparse.linalg.eigs(P, k=2, return_eigenvectors=False, which='LR')
   #print(eig)
   return np.real(max(eig)-min(eig)).item()
- 
+
+# compute estrada heterogeneity index of network
+def estrada_heterogeneity(G) :
+  n = len(G)
+  k = [1/mt.sqrt(G.degree(v)) if G.degree(v) > 0 else 0 for v in range(n)]
+  S = [(k[e[0]]-k[e[1]])**2 for e in G.edges()]
+  rho = sum(S)/float(n - 2*mt.sqrt(n-1))
+  return rho
+  
 # create RGG from REDS node position. reach defaults to original
 def RGG_from_REDS(REDS, mean_deg=None, torus=True) :
   n = len(REDS)
@@ -683,3 +692,5 @@ def average_degree_distribution(graph_list) :
   plt.plot(values, norm_hist, 'g-', linewidth = 3.0)
   plt.xlabel('Degree', fontsize = 15)
   plt.ylabel('Freq', fontsize = 15)
+
+  
