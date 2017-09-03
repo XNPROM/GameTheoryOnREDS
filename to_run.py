@@ -119,10 +119,28 @@ sim_dict_redsold = {'REDS': reds, 'Erdos-Renyi': erdos, 'Barabasi-Albert': barab
 
 sim_dict = {'Standard': reds_sim, 'Random': rand_reds_sim, 'Community-Random': comm_rand_reds_sim, 'Community': comm_reds_sim}
 
-def reds_e_range(n, r, s, num, max_e, min_e=0) :
+def reds_e_range(n, r, s, num, max_e, min_e=0, depth=1) :
   step = (max_e-min_e)/float(num)
   e_list = np.arange(min_e, max_e+step, step)
-  return [reds_graph(n, r, e, s) for e in e_list]
+  return {str(e):[reds_graph(n, r, e, s) for x in range(depth)] for e in e_list}
+  
+def connected_hist(reds_range) :
+  my_dpi=300
+  connected = {k: map(nx.is_connected, v) for k, v in reds_range.iteritems}
+  keys = [float(k) for k, v in connected.iteritems()]
+  rate_connected = [sum(v)/float(len(v)) for k, v in connected.iteritems()]
+  rate_disconnected = [(len(v)-sum(v))/float(len(v)) for k, v in connected.iteritems()]
+  fig = plt.figure(figsize=(6, 2), dpi = my_dpi)
+  plt.bar(keys, rate_disconnected, bottom = rate_connected, color = '#adadad', label='Disconnected')
+  plt.bar(keys, rate_connected, color = '#494949', label='Connected')
+  plt.legend()
+  plt.tick_params(labelsize=9)
+  plt.ylabel('Rate of Connectivity', fontsize=10, weight='bold')
+  plt.xlabel('E', fontsize=10, weight='bold', fontstyle='italic')
+  plt.tight_layout()
+  plt.savefig(data_directory+'connect_hist.png', dpi=my_dpi)
+  
+    
   
 def plot_path_lengths(e_range) :
   lengths = [e.graph['char_path_length'] for e in e_range]

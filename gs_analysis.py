@@ -35,7 +35,8 @@ def coop_by_degree_list(simulation, b_list) :
   plt.tight_layout()
   
 def coop_by_degree(simulation, b) :
-  my_dpi = 96
+  my_dpi = 300
+  fig = plt.figure(figsize=(6, 2), dpi=my_dpi)
   n_steps = len(simulation['coop_degree'])
   b_index = int(round((b-1)*n_steps))
   df = simulation['coop_degree'][b_index]
@@ -61,10 +62,11 @@ def coop_by_degree(simulation, b) :
   p1 = plt.bar(index, c_ratio, color = '#494949', label = 'Co-operators')
   #plt.title('Co-operation by Degree for '+simulation['graph_name']+': b=' + str(b), fontsize=20)
   plt.legend()
-  plt.tick_params(labelsize=14)
+  plt.tick_params(labelsize=9)
   plt.xlim(min_degree-1, max_degree+1)
-  plt.xlabel('Degree', fontsize=17, weight='bold')
-  plt.ylabel('Co-operation Ratio', fontsize=17, weight='bold')
+  plt.xlabel('Degree', fontsize=10, weight='bold')
+  plt.ylabel('Co-op. Ratio', fontsize=10, weight='bold')
+  plt.tight_layout()
     
 # pyplot the degree distribution over all generated networks
 def degree_distribution_plot(simulation) :
@@ -96,12 +98,12 @@ def cooperation_by_b_plot(simulation, name=None) :
     average_rate = map(lambda x,y : x+y, average_rate, simulation['networks'][g]['overall_average_cooperation'])
   average_rate = map(lambda x : x/float(n_networks), average_rate)
   b = [1 + i/float(n_steps) for i in range(n_steps)]
-  plt.plot(b, average_rate, linewidth=2.0, label=lab)
+  plt.plot(b, average_rate, linewidth=3.0, label=lab)
   plt.xlim(1.0, 2.0)
   plt.ylim(-0.05, 1.05)
   #plt.title('Co-operation rate over b for '+simulation['graph_name'], fontsize=20)
-  plt.xlabel('b', fontsize=17, style='italic', weight='bold')
-  plt.ylabel('Co-operation Ratio', fontsize=17, weight='bold')
+  plt.xlabel('b', fontsize=14, style='italic', weight='bold')
+  plt.ylabel('Co-operation Ratio', fontsize=12, weight='bold')
   
 # uses data for each node of each network to construct a dataframe 
 # which compares degree to cooperation rate
@@ -192,14 +194,14 @@ def mult_coop_by_b_plot(sim_dict) :
   my_dpi=300
   fig = plt.figure(figsize=(6, 4), dpi=my_dpi)
   ax = fig.add_subplot('111')
-  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'c', 'm', 'y']) + cycler('linestyle', ['-', '--', '-.', ':', '-', '--']))
+  ax.set_prop_cycle(cycler('color', ['c', 'm', 'y', 'k']) + cycler('linestyle', ['-', '--', '-.', ':']))
   filename = 'coop_by_b'
   for name, sim in sim_dict.iteritems() :
     filename = filename + '_' + name
     cooperation_by_b_plot(sim, name)
   #plt.title('Co-operation Ratios for Random Graphs', fontsize=40)
-  ax.tick_params(labelsize=14)
-  plt.legend(loc=(0.75, 0.65), prop={'size': 7})
+  ax.tick_params(labelsize=11)
+  plt.legend(loc=(0.71, 0.735), prop={'size': 9})
   plt.tight_layout()
   plt.savefig(data_directory+filename+'_k=10_print.png')
   

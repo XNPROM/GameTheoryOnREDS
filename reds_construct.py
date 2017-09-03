@@ -303,7 +303,7 @@ def draw_graph(G, fade_boundary_edges=True) :
 def draw_communities(G, fade_boundary_edges=True) :
   coord = nx.get_node_attributes(G, 'pos')
   partition = community.best_partition(G)
-  size = float(len(set(partition.values())))  
+  size = float(len(set(partition.values()))) 
   if fade_boundary_edges == True :
     edge_dists={e: distance(G.node[e[0]], G.node[e[1]]) for e in G.edges()}
     unit_edges = []
@@ -323,6 +323,7 @@ def draw_communities(G, fade_boundary_edges=True) :
     nx.draw_networkx_edges(G, coord, edgelist=bound_edges, alpha = 0.05)
   else :
     nx.draw_networkx_edges(G, coord, alpha = 0.3)
+  plt.axis('scaled')
   plt.xlim(-0.02, 1.02)
   plt.ylim(-0.02, 1.02)
   plt.xticks([])
