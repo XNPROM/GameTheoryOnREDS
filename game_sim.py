@@ -243,4 +243,26 @@ def plot_graph(graph, style) :
   plt.plot(graph[0], graph[1], style)
  
 
+# plot fraction of cooperators over time. Only use for data
+# starting at t=0
+def plot_coop_ratio_over_steps(data_list, end_step=None) :
+  my_dpi = 300
+  fig = plt.figure(figsize=(6, 4), dpi = my_dpi)
+  ax = fig.add_subplot('111')
+  ax.set_prop_cycle(cycler('color', ['r', 'b', 'k']) + cycler('linestyle', ['-', '-', '-']))
+  for data in data_list :
+    end = len(data) if (end_step==None or end_step>len(data)) else end_step
+    t = range(end)
+    ratio = [mean(arr) for arr in data[:end]]
+    plt.plot(t, ratio)
+  plt.xlabel('Time', fontsize=10, weight='bold')
+  plt.ylabel('Fraction of Co-operators', fontsize=10, weight='bold')
+  ax.tick_params(labelsize=9)
+  plt.tight_layout()
+  plt.savefig(data_directory+'converge4.png', dpi = my_dpi)
 
+  
+  
+  
+  
+  

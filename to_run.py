@@ -122,24 +122,176 @@ sim_dict = {'Standard': reds_sim, 'Random': rand_reds_sim, 'Community-Random': c
 def reds_e_range(n, r, s, num, max_e, min_e=0, depth=1) :
   step = (max_e-min_e)/float(num)
   e_list = np.arange(min_e, max_e+step, step)
-  return {str(e):[reds_graph(n, r, e, s) for x in range(depth)] for e in e_list}
+  cnt = 0
+  total = depth * num
+  dict = {}
+  for e in e_list :
+    dict[str(e)] = []
+    arr = dict[str(e)]
+    for x in range(depth) :
+      print('graph '+str(cnt)+' of '+str(total))
+      arr.append(reds_graph(n, r, e, s))
+      cnt = cnt+1
+  return dict
   
-def connected_hist(reds_range) :
+def con_size(dict) :
+  ndict = {'size': {}, 'connect': {}}
+  ndict['size'] = {k: map(lambda g: g.size(), l) for k, l in dict.iteritems()}
+  ndict['connect'] = {k: map(nx.is_connected, l) for k, l in dict.iteritems()}
+  return ndict
+  
+def connected_hist(connected) :
   my_dpi=300
-  connected = {k: map(nx.is_connected, v) for k, v in reds_range.iteritems}
-  keys = [float(k) for k, v in connected.iteritems()]
-  rate_connected = [sum(v)/float(len(v)) for k, v in connected.iteritems()]
-  rate_disconnected = [(len(v)-sum(v))/float(len(v)) for k, v in connected.iteritems()]
+  keys = sorted([float(k) for k, v in connected.iteritems()])
+  rate_connected = [mean(connected[str(k)]) for k in keys]
   fig = plt.figure(figsize=(6, 2), dpi = my_dpi)
-  plt.bar(keys, rate_disconnected, bottom = rate_connected, color = '#adadad', label='Disconnected')
-  plt.bar(keys, rate_connected, color = '#494949', label='Connected')
+  predictor = [connected_prob(k) for k in keys]
+  plt.plot(keys, predictor, 'r-', linewidth=3.0, label='Predictor')
+  plt.plot(keys, rate_connected, 'bo', label='Observed')
   plt.legend()
   plt.tick_params(labelsize=9)
-  plt.ylabel('Rate of Connectivity', fontsize=10, weight='bold')
+  plt.ylabel('Prob. Connected', fontsize=10, weight='bold')
+  plt.xlabel('E', fontsize=10, weight='bold', fontstyle='italic')
+  plt.xlim(min(keys), max(keys))
+  plt.tight_layout()
+  plt.savefig(data_directory+'connect_hist_pred.png', dpi=my_dpi)
+  
+def md_graph(size) :
+  my_dpi=300
+  keys = sorted([float(k) for k, v in size.iteritems()])
+  md = {k: map(lambda s: s*2/float(1000), l) for k, l in size.iteritems()}
+  mean_md = [mean(md[str(k)]) for k in keys]
+  error = [mt.sqrt( var(md[str(k)]) / len(md[str(k)]) ) for k in keys]
+  lbound = map(lambda x, y: x-y, mean_md, error)
+  ubound = map(lambda x, y: x+y, mean_md, error)
+  fig = plt.figure(figsize=(6, 3), dpi = my_dpi)
+  plt.plot(keys, ubound, color = '#adadad', linestyle='--', label='Standard Error')
+  plt.plot(keys, lbound, color = '#adadad', linestyle='--')
+  plt.plot(keys, mean_md, color = '#494949', linewidth=3.0, label='Mean Degree')
+  plt.ylabel('Mean Degree', fontsize=10, weight='bold')
   plt.xlabel('E', fontsize=10, weight='bold', fontstyle='italic')
   plt.tight_layout()
-  plt.savefig(data_directory+'connect_hist.png', dpi=my_dpi)
+  plt.savefig(data_directory+'mean_deg_plot.png', dpi = my_dpi)
+
+def connected_prob(E) :
+  return(np.tanh(100.5*E - 13.65)+1)/2
   
+def connected_quant(p) :
+  if p >= 1 or p <= 0 :
+    return None
+  else :
+    return (np.arctanh(2*p - 1) + 13.65)/100.5
+
+def size_range(n, r, s, min_e, max_e, num, depth) :
+  step = (max_e-min_e)/float(num)
+  e_list = np.arange(min_e, max_e+step, step)
+  cnt = 0
+  total = depth * (num+1)
+  dict = {'size': {}, 'max': {}}
+  for e in e_list :
+    dict['size'][str(e)] = []
+    dict['max'][str(e)] = []
+    s_arr = dict['size'][str(e)]
+    m_arr = dict['max'][str(e)]
+    for x in range(depth) :
+      print('graph '+str(cnt)+' of '+str(total))
+      G = reds_graph(n, r, e, s)
+      R = RGG_from_REDS(G)
+      s_arr.append(G.size())
+      m_arr.append(R.size())
+      del G
+      del R
+      cnt = cnt+1
+  return dict
+  
+def box_unpack(size_dict) :
+  s = size_dict['size']
+  m = size_dict['max']
+  E = []
+  S = []
+  M = []
+  E = sorted([float(k) for k in s.keys()])
+  for k in E:
+    S.append([])
+    M.append([])
+    for i in range(len(s[str(k)])) :
+      S[-1].append(s[str(k)][i])
+      M[-1].append(m[str(k)][i])
+  return {'E': np.array(E), 'S': np.array(S), 'M': np.array(M)}
+
+def boxplot_size(box_dict) :
+  my_dpi = 300
+  s_means = box_dict['S'].mean(axis=1)
+  m_means = box_dict['M'].mean(axis=1)
+  e = box_dict['E']
+  fig = plt.figure(figsize=(6, 3), dpi = my_dpi)
+  plt.plot(e, m_means, 'r--', linewidth=2.0, label='Maximum Size')
+  plt.plot(e, s_means, 'b-', linewidth=3.0, label='Actual Size')
+  plt.xlim(min(e)-0.01, max(e)+0.01)
+  locs, labels = plt.xticks()
+  plt.boxplot(box_dict['S'].transpose(), showfliers=False, positions=e, widths = 0.01)
+  plt.boxplot(box_dict['M'].transpose(), showfliers=False, positions=e, widths = 0.01)  
+  #plt.xticks(locs)
+  plt.xlim(min(e)-0.01, max(e)+0.01)
+  plt.ylabel('Network Size', fontsize=10, weight='bold')
+  plt.xlabel('E', fontsize=10, weight='bold', fontstyle='italic')
+  plt.legend()
+  plt.tight_layout()
+  plt.savefig(data_directory+'size_box.png', dpi = my_dpi)
+  
+def size_prob(E) :
+  return(np.tanh(15.95*E - 2.585)+1)/2
+  
+def size_quant(p) :
+  return (np.arctanh(2*p-1)+2.585)/15.95
+
+def size_predict(E, max=15600) :
+  return np.random.binomial(max, size_prob(E))
+  
+def size_predict_exp(E, max=15600) :
+  return max*size_prob(E)
+  
+def size_quant_exp(s, max=15600) :
+  return size_quant(s/float(max))
+ 
+def size_cdf(E, s, max=15600) :
+  p = size_prob(E)
+  n = max
+  return stats.binom.cdf(s, n, p)
+ 
+def size_quant(E, q, max=15600) :
+  p = size_prob(E)
+  n = max
+  return stats.binom.ppf(q, n, p)
+ 
+def size_pred_compare(df_sort, predictor=size_predict_exp) :
+  my_dpi = 300
+  predict = size_predict if predictor == None else predictor
+  fig = plt.figure(figsize=(6, 3), dpi = my_dpi)
+  e_pred = np.arange(0, 0.31, 0.01)
+  s_pred = [predict(e) for e in e_pred]
+  plt.plot(e_pred, s_pred, 'r-', linewidth=3.0, label = 'Predicted Size')
+  plt.plot(df_sort['E'], df_sort['S'], 'bo', label='Observed Size')
+  plt.ylabel('Network Size', fontsize=10, weight='bold')
+  plt.xlabel('E', fontsize=10, weight='bold', fontstyle='italic')
+  plt.legend()
+  plt.tight_layout()
+  plt.savefig(data_directory+'size_box_pred_comp2.png', dpi = my_dpi)
+ 
+  
+def unpack(size_dict) :
+  s = size_dict['size']
+  m = size_dict['max']
+  E = []
+  S = []
+  M = []
+  for k, v in s.iteritems():
+    for i in range(len(v)) :
+      E.append(float(k))
+      S.append(s[k][i])
+      M.append(m[k][i])
+  df = pd.DataFrame({'E': E, 'S': S, 'M': M})
+  return df
     
   
 def plot_path_lengths(e_range) :
@@ -229,4 +381,21 @@ for k, s in sim_dict.iteritems() :
   for m in s['networks'] :
     social_properties(m['network'])
     net_dict[k].append(m['network'])
+    
+
+def comp_deg(graphs) :
+  degs = {}
+  for k, l in graphs :
+    degs[k] = []
+    for g in graphs[k] :
+      for n in range(len(g)) :
+        degs[k].append(g.degree().values()[i])
+  
+  
+  
+  
+  
+  
+  
+  
   

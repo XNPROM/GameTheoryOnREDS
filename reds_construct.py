@@ -376,9 +376,9 @@ def draw_strategy(G, sim_data, step, fade_boundary_edges=True) :
       coops.append(k)
     else :
       defects.append(k)
-  nx.draw_networkx_nodes(G, pos = coord, node_color = 'b', nodelist = coops, node_size = 30, label = 'C')
-  nx.draw_networkx_nodes(G, pos = coord, node_color = 'r', nodelist = defects, node_size = 30, label = 'D')
-  plt.legend(prop={'size': 12})
+  nx.draw_networkx_nodes(G, pos = coord, node_color = 'b', nodelist = coops, node_size = 4, label = 'C')
+  nx.draw_networkx_nodes(G, pos = coord, node_color = 'r', nodelist = defects, node_size = 4, label = 'D')
+  #plt.legend(prop={'size': 12})
  
   if fade_boundary_edges == True :
     edge_dists={e: distance(G.node[e[0]], G.node[e[1]]) 
@@ -401,14 +401,16 @@ def draw_strategy(G, sim_data, step, fade_boundary_edges=True) :
   plt.yticks([])
 
 def draw_strategies(G, sim_data, time_steps) :
-  my_dpi = 96
+  my_dpi = 300
   l = len(time_steps)
-  fig = plt.figure(figsize=(1100/my_dpi, 1200/(l*my_dpi)), dpi=my_dpi)
+  fig = plt.figure(figsize=(6, 4), dpi=my_dpi)
   for i in range(l) :
-    fig.add_subplot(1, l, i+1)
+    fig.add_subplot(2, (l+1)/2, i+1)
+    plt.axis('scaled')
     draw_strategy(G, sim_data, time_steps[i])
-    plt.xlabel('t = '+str(time_steps[i]), fontsize=17, weight='bold')
+    plt.xlabel('t = '+str(time_steps[i]), fontsize=10, weight='bold')
   plt.tight_layout()
+  plt.savefig(data_directory+'comm_invade.png', dpi = my_dpi)
 
 # draw the graphs communities and the strategies at a particular 
 # timestep in recorded simulation data
@@ -671,16 +673,18 @@ def mean_properties(graph_dict) :
   
 def compare_degree_distribution_plot(graph_dict) :
   n = len(graph_dict)    
-  my_dpi = 96
-  fig = plt.figure(figsize = (1920/my_dpi, 720/my_dpi), dpi = my_dpi)
+  my_dpi = 300
+  fig = plt.figure(figsize = (6, 2), dpi = my_dpi)
   i = 0
   filename = 'compare_degree'
   for k, v in graph_dict.iteritems() :
     i = i+1
     filename = filename+'_'+k
-    fig.add_subplot(1, n, i)
+    ax = fig.add_subplot(1, n, i)
     average_degree_distribution(v)
-    plt.title(k, fontsize=18)
+    plt.title(k, fontsize=10, weight='bold')
+    ax.tick_params(labelsize=9)
+  plt.tight_layout()
   plt.savefig(data_directory+filename+'.png', dpi = my_dpi)
   
 def average_degree_distribution(graph_list) :
@@ -691,7 +695,7 @@ def average_degree_distribution(graph_list) :
   hist = reduce(lambda x, y : map(lambda x_i, y_i : x_i + y_i, x, y), hist_list)
   norm_hist = map(lambda f : f/float(len(graph_list)), hist)
   plt.plot(values, norm_hist, 'g-', linewidth = 3.0)
-  plt.xlabel('Degree', fontsize = 15)
-  plt.ylabel('Freq', fontsize = 15)
+  plt.xlabel('Degree', fontsize = 9, weight='bold')
+  plt.ylabel('Freq.', fontsize = 9, weight='bold')
 
   
